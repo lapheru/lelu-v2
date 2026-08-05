@@ -85,6 +85,9 @@ export default function GenesisDock({
   const hasErrors = engineErrorCount > 0;
   const isLive = thinking || speaking;
 
+  const [downloading, setDownloading] = useState(false);
+  const [downloadFailed, setDownloadFailed] = useState(false);
+
   const statusColor = hasErrors
     ? genesisTheme.status.error
     : isLive
@@ -121,6 +124,31 @@ export default function GenesisDock({
       };
     }
     return {};
+  }
+
+  async function downloadProjectZip() {
+    if (downloading) return;
+    setDownloading(true);
+    setDownloadFailed(false);
+    try {
+      const base = typeof import.meta.env.BASE_URL === "string" ? import.meta.env.BASE_URL : "/";
+      const response = await fetch(`${base}lelu-project.zip`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "lelu-project.zip";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch (error) {
+      setDownloadFailed(true);
+      console.error("[GenesisDock] Project ZIP download failed:", error);
+    } finally {
+      setDownloading(false);
+    }
   }
 
   if (narrow) {
@@ -170,6 +198,29 @@ export default function GenesisDock({
             </button>
           );
         })}
+        <button
+          type="button"
+          title={downloadFailed ? "Download failed — retry" : "Download project ZIP"}
+          onClick={downloadProjectZip}
+          style={{
+            flexShrink: 0,
+            border: downloadFailed
+              ? `1px solid ${genesisTheme.status.error}`
+              : genesisTheme.glass.borderSoft,
+            borderRadius: genesisTheme.radius.pill,
+            background: downloading ? "rgba(34, 211, 238, 0.18)" : "rgba(255,255,255,0.05)",
+            color: "white",
+            padding: "6px 12px",
+            fontSize: 12,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            cursor: "pointer",
+          }}
+        >
+          <span aria-hidden>{downloading ? "◌" : "⬇"}</span>
+          {downloading ? "Preparing…" : "ZIP"}
+        </button>
       </div>
     );
   }
@@ -246,6 +297,29 @@ export default function GenesisDock({
           })}
         </div>
       ))}
+
+      <div style={{ height: 1, background: "rgba(255,255,255,0.1)", margin: "4px 4px 0" }} />
+      <button
+        type="button"
+        title={downloadFailed ? "Download failed — file not served yet, retry" : "Download project ZIP"}
+        onClick={downloadProjectZip}
+        style={{
+          width: 40,
+          height: 40,
+          border: downloadFailed ? `1px solid ${genesisTheme.status.error}` : "1px solid transparent",
+          borderRadius: genesisTheme.radius.md,
+          background: downloading ? "rgba(34, 211, 238, 0.12)" : "transparent",
+          color: "white",
+          fontSize: 16,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background 0.15s ease, border-color 0.15s ease",
+        }}
+      >
+        <span aria-hidden>{downloading ? "◌" : "⬇"}</span>
+      </button>
     </div>
   );
 }
