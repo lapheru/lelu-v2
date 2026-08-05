@@ -1,0 +1,15 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch();
+const page = await browser.newPage();
+await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1000);
+await page.click('button:has-text("💬")');
+await page.waitForTimeout(300);
+const html = await page.$eval('body', b => b.innerHTML);
+console.log(html.slice(0, 2000));
+const inputs = await page.$$eval('input', els => els.map(i => ({type:i.type, placeholder:i.placeholder, value:i.value})));
+console.log('INPUTS', JSON.stringify(inputs));
+const buttons = await page.$$eval('button', els => els.map(b => b.innerText));
+console.log('BUTTONS', JSON.stringify(buttons));
+await page.screenshot({ path: '/workspaces/Lelu-/runtime-chatdom.png', fullPage: true });
+await browser.close();

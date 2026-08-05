@@ -1,0 +1,16 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch();
+const page = await browser.newPage();
+await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' });
+await page.waitForTimeout(2000);
+const html = await page.$eval('body', b => b.innerHTML);
+const hasInterface = html.includes('🌌') || html.includes('active events') || html.includes('chat');
+const buttonCount = await page.$$eval('button', els => els.length);
+const hasChatButton = await page.$('button:has-text("💬")') !== null;
+const hasMinimize = await page.$('button:has-text("◌")') !== null;
+console.log('BUTTON_COUNT', buttonCount);
+console.log('HAS_INTERFACE_TEXT', hasInterface);
+console.log('HAS_CHAT_BUTTON', hasChatButton);
+console.log('HAS_MINIMIZE_BUTTON', hasMinimize);
+await page.screenshot({ path: '/workspaces/Lelu-/runtime-verify.png', fullPage: true });
+await browser.close();

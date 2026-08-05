@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch();
+const page = await browser.newPage();
+await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' });
+await page.waitForTimeout(2000);
+const html = await page.content();
+console.log('HTML_LENGTH', html.length);
+console.log('BODY', await page.$eval('body', b => b.innerHTML.slice(0, 1000)));
+await page.screenshot({ path: '/workspaces/Lelu-/runtime-screenshot.png', fullPage: true });
+await browser.close();

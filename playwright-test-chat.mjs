@@ -1,0 +1,31 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch();
+const page = await browser.newPage();
+const logs = [];
+page.on('console', msg => logs.push({type:'console', text: msg.text()}));
+page.on('pageerror', e => logs.push({type:'pageerror', message: e.message}));
+await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1000);
+const hasChatButton = await page.$('button:has-text("💬")');
+if (!hasChatButton) throw new Error('Chat button missing');
+await hasChatButton.click();
+await page.waitForTimeout(300);
+const inputExists = await page.$eval('input', () => true).catch(() => false);
+const sendButtonExists = await page.$('button:has-text("Send")').then(() => true).catch(() => false);
+const voiceButtonExists = await page.$('button:has-text("Mic")').then(() => true).catch(() => false);
+let sendResult = false;
+if (inputExists && sendButtonExists) {
+  await page.fill('input', 'hello');
+  await page.click('button:has-text("Send")');
+  await page.waitForTimeout(300);
+  const bodyText = await page.$eval('body', b => b.innerText);
+  sendResult = bodyText.includes('hello');
+}
+const buttons = await page.$$eval('button', els => els.map(el => el.innerText));
+await page.screenshot({ path: '/workspaces/Lelu-/runtime-chat-verify.png', fullPage: true });
+console.log('BUTTONS', JSON.stringify(buttons));
+console.log('INPUT_EXISTS', inputExists);
+console.log('SEND_BUTTON_EXISTS', sendButtonExists);
+console.log('SEND_RESULT', sendResult);
+console.log('LOGS', JSON.stringify(logs, null, 2));
+await browser.close();
