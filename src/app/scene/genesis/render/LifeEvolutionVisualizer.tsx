@@ -144,8 +144,8 @@ export default function LifeEvolutionVisualizer() {
           color="#55ff99"
           transparent
           opacity={
-            0.02 +
-            energySafe * 0.05
+            0.045 +
+            energySafe * 0.08
           }
           depthWrite={false}
           toneMapped={false}
@@ -177,8 +177,8 @@ export default function LifeEvolutionVisualizer() {
 
               <sphereGeometry
                 args={[
-                  0.010 +
-                  (i % 3) * 0.003,
+                  0.022 +
+                  (i % 3) * 0.006,
                   10,
                   10,
                 ]}
@@ -188,8 +188,8 @@ export default function LifeEvolutionVisualizer() {
                 color="#8cffb8"
                 transparent
                 opacity={
-                  0.12 +
-                  awarenessSafe * 0.22
+                  0.24 +
+                  awarenessSafe * 0.30
                 }
                 depthWrite={false}
                 toneMapped={false}

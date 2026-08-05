@@ -111,7 +111,7 @@ export default function HaloShell() {
     shell.current.scale.setScalar(
 
       breathe +
-      activity * 0.04
+      activity * 0.10
 
     );
 
@@ -129,9 +129,9 @@ export default function HaloShell() {
 
     >      <sphereGeometry
         args={[
-          1.28,
-          96,
-          96,
+          1.52,
+          112,
+          112,
         ]}
       />
 

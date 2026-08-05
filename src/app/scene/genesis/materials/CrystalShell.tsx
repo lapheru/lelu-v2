@@ -92,7 +92,7 @@ export default function CrystalShell() {
       delta * 0.015;
 
     shell.current.scale.setScalar(
-      1 + activity * 0.16,
+      1.02 + activity * 0.24 + Math.sin(performance.now() * 0.0014) * (0.012 + activity * 0.018),
     );
 
   });
@@ -110,8 +110,8 @@ export default function CrystalShell() {
     >      <icosahedronGeometry
 
         args={[
-          1.02,
-          64,
+          1.12,
+          96,
         ]}
 
       />

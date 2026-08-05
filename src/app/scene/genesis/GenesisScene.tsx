@@ -59,15 +59,15 @@ function GenesisCanvas() {
             left: 0,
           }}
         camera={{
-          position: [0, 0, 6.2],
-          fov: 46,
+          position: [0, 0, 6.8],
+          fov: 48,
         }}
         shadows
         gl={{
           antialias: true,
         }}
       >
-        <color attach="background" args={["#000000"]} />
+        <color attach="background" args={["#020617"]} />
 
         <ambientLight intensity={0.45} />
         <directionalLight position={[4, 6, 4]} intensity={1.5} />

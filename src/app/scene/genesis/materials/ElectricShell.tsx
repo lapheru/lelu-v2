@@ -112,7 +112,8 @@ export default function ElectricShell() {
 
     shell.current.scale.setScalar(
 
-      pulse
+      pulse +
+      activity * 0.08
 
     );
 
@@ -130,14 +131,9 @@ export default function ElectricShell() {
 
     >
 
-      <icosahedronGeometry
-
-        args={[
-
-          1.12,
-
-          64,
-
+      <icosahedronGeometry args={[
+          1.30,
+          96,
         ]}
 
       />

@@ -66,12 +66,12 @@ export default function CoreLayer({
       1 +
 
       Math.sin(
-        time.current * 0.60,
+        time.current * (0.9 + liveUniverse.evolutionSystem.formChange * 1.8),
       ) *
 
       (
-        0.009 +
-        activity * 0.016
+        0.018 +
+        activity * 0.032
       );
 
     root.current.scale.setScalar(
@@ -81,8 +81,9 @@ export default function CoreLayer({
     root.current.rotation.y +=
       delta *
       (
-        0.026 +
-        activity * 0.045
+        0.048 +
+        activity * 0.085 +
+        liveUniverse.evolutionSystem.mutation * 0.05
       );
 
     root.current.rotation.x =

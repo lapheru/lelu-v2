@@ -69,8 +69,8 @@ export default function CoreMemoryVeins() {
     );
 
     const liveOpacity = Math.min(
-      0.62,
-      0.12 +
+      0.86,
+      0.28 +
       liveUniverse.memory.importance * 0.30 +
       emergence * 0.16 +
       (liveUniverse.pulse.intensity ?? 0) * 0.10,
@@ -126,7 +126,7 @@ export default function CoreMemoryVeins() {
 
                 index * 0.012,
 
-                0.0025,
+                0.009,
 
                 12,
 
@@ -136,7 +136,7 @@ export default function CoreMemoryVeins() {
             />
 
             <meshBasicMaterial
-              color="#8fefff"
+              color="#a7f6ff"
               transparent
               opacity={opacity}
               depthWrite={false}
