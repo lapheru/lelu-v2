@@ -164,6 +164,10 @@ export default function GenesisCore(){
 
       universe.evolutionSystem?.mutation ?? 0;
 
+    const colorShift =
+
+      universe.evolutionSystem?.colorShift ?? 0;
+
 
 
 
@@ -372,8 +376,9 @@ if (uniforms.uOceanCurrent) {
 
 if (uniforms.uColorShift) {
   uniforms.uColorShift.value =
-    mutation * 0.2 +
-    tide * 0.1;
+    colorShift * 0.8 +
+    mutation * 0.15 +
+    tide * 0.05;
 }
 
 

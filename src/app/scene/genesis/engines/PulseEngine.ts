@@ -85,6 +85,10 @@ export default class PulseEngine {
 
 
 
+    state.pulse.heartbeat = pulse;
+    state.pulse.intensity = engaged ? 0.75 + pulse * 0.25 : pulse;
+    state.pulse.frequency = tempo;
+
     /*
      * Feed visual energy
      */

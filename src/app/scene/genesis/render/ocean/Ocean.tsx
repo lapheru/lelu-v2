@@ -89,7 +89,11 @@ export default function Ocean(){
 
   } = useGenesis();
 
-
+  const oceanState: OceanState = {
+    ...universe.ocean,
+    waveHeight: universe.ocean.wave,
+    caustics: universe.ocean.wave,
+  };
 
 
 
@@ -311,16 +315,16 @@ export default function Ocean(){
 
       <OceanLighting
 
-        oceanState={universe.ocean}
+        oceanState={oceanState}
 
       />
 
       <Caustics
-        oceanState={universe.ocean}
+        oceanState={oceanState}
       />
 
       <Foam
-        oceanState={universe.ocean}
+        oceanState={oceanState}
       />
 
     </group>

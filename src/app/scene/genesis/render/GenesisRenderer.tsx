@@ -113,17 +113,6 @@ export default function GenesisRenderer(){
 
 } = useGenesis();
 
-const weights =
-  engineRuntime
-    ?.getEngineBus()
-    .getWeights() ?? {
-      plasma: 1,
-      ocean: 0,
-      crystal: 1,
-      electric: 1,
-      halo: 1,
-    };
-
   /*
    * Live activity signals.
    *
@@ -273,17 +262,11 @@ const weights =
 
           <GenesisCore />
 
-          <CrystalShell
-  activity={weights.crystal}
-/>
+          <CrystalShell />
 
-<ElectricShell
-  activity={weights.electric}
-/>
+          <ElectricShell />
 
-<HaloShell
-  activity={weights.halo}
-/>
+          <HaloShell />
 
           <CoreMutationVisualizer />
 

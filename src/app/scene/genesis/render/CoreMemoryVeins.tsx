@@ -46,11 +46,15 @@ export default function CoreMemoryVeins() {
 
     ) * 0.33;
 
+    const emergence =
+      universe.evolutionSystem.emergence;
+
     group.current.rotation.y +=
       delta *
       (
         0.012 +
-        memoryEnergy * 0.02
+        memoryEnergy * 0.02 +
+        emergence * 0.01
       );
 
     group.current.rotation.x =
@@ -68,7 +72,9 @@ export default function CoreMemoryVeins() {
 
     0.015 +
 
-    universe.memory.importance * 0.08;
+    universe.memory.importance * 0.08 +
+
+    universe.pulse.intensity * 0.02;
 
   return (
 

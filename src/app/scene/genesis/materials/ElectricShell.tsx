@@ -24,17 +24,11 @@ import {
 import ElectricMaterial
   from "./ElectricMaterial";
 
-interface Props {
+import { useGenesis } from "../GenesisCore";
 
-  activity: number;
+export default function ElectricShell() {
 
-}
-
-export default function ElectricShell({
-
-  activity,
-
-}: Props) {
+  const { engineRuntime } = useGenesis();
 
   const shell =
 
@@ -57,6 +51,10 @@ export default function ElectricShell({
       return;
 
     }
+
+    const activity =
+      engineRuntime?.getEngineBus().getWeights().electric ??
+      0;
 
     const uTime = material.uniforms.uTime;
     const uActivity = material.uniforms.uActivity;

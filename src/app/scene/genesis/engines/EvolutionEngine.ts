@@ -189,13 +189,50 @@ export default class EvolutionEngine {
 
         ) / 2,
 
-      );
+      );    /*
+     * Publish the visual evolution channels consumed by the active
+     * core, mutation field, and shell renderers. These remain derived
+     * from the canonical Genesis state; no second visual state machine
+     * is introduced.
+     */
+    const visualStage =
+      state.evolutionSystem.stage;
 
+    state.evolutionSystem.colorShift = Math.min(
+      1,
+      visualStage * 0.75 +
+      state.evolutionSystem.mutation * 0.25,
+    );
 
+    state.evolutionSystem.formChange = Math.min(
+      1,
+      visualStage * 0.60 +
+      state.evolutionSystem.adaptation * 0.40,
+    );
+
+    state.evolutionSystem.plasma = Math.min(
+      1,
+      state.energy * 0.50 +
+      state.consciousness * 0.30 +
+      visualStage * 0.20,
+    );
+
+    state.evolutionSystem.emergence = Math.min(
+      1,
+      Math.max(state.life, state.awareness) *
+      (0.50 + visualStage * 0.50),
+    );
+
+    state.evolutionSystem.instability = Math.min(
+      1,
+      state.chaos * 0.45 +
+      (1 - state.stability) * 0.35 +
+      state.evolutionSystem.mutation * 0.20,
+    );
 
     this.updateEra(state);
-
     this.updateMode(state);
+
 
 
   }

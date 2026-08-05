@@ -24,17 +24,11 @@ import {
 import CrystalMaterial
   from "./CrystalMaterial";
 
-interface Props {
+import { useGenesis } from "../GenesisCore";
 
-  activity: number;
+export default function CrystalShell() {
 
-}
-
-export default function CrystalShell({
-
-  activity,
-
-}: Props) {
+  const { engineRuntime } = useGenesis();
 
   const shell =
 
@@ -57,6 +51,10 @@ export default function CrystalShell({
       return;
 
     }
+
+    const activity =
+      engineRuntime?.getEngineBus().getWeights().crystal ??
+      0;
 
     const uTime = material.uniforms.uTime;
     const uActivity = material.uniforms.uActivity;
