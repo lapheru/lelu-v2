@@ -8,14 +8,15 @@
  * GenesisDock is the single navigation surface (see
  * GenesisDock.tsx); this component owns layout, the floating
  * status/quick-jump card, and mounting exactly one panel at a
- * time. Every panel below is lazy-loaded, so opening "Memory"
- * for the first time is the only moment its code downloads —
- * consistent with GenesisChat's existing lazy-load pattern,
- * now applied to every panel instead of just chat.
+ * time. Every panel stays in the same eager module graph as the
+ * GenesisCore provider. This is intentional: these panels are
+ * tightly coupled to the live Genesis context, and keeping them
+ * together avoids context/runtime identity problems across
+ * asynchronous chunks.
  * ==========================================================
  */
 
-import { lazy, Suspense, useMemo } from "react";
+import { useMemo } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useGenesis } from "./GenesisCore";
 import GenesisDock from "./GenesisDock";
@@ -23,41 +24,15 @@ import GenesisCommandPalette from "./GenesisCommandPalette";
 import GenesisNotificationCenter from "./GenesisNotificationCenter";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 import { genesisTheme } from "./GenesisTheme";
-
-const GenesisChat = lazy(() => import("./GenesisChat"));
-const GenesisReasoningPanel = lazy(() => import("./GenesisReasoningPanel"));
-const GenesisDiagnosticsPanel = lazy(() => import("./GenesisDiagnosticsPanel"));
-const GenesisMemoryPanel = lazy(() => import("./GenesisMemoryPanel"));
-const GenesisProvidersPanel = lazy(() => import("./GenesisProvidersPanel"));
-const GenesisKnowledgePanel = lazy(() => import("./GenesisKnowledgePanel"));
-const GenesisHistoryPanel = lazy(() => import("./GenesisHistoryPanel"));
-const GenesisWorkspacesPanel = lazy(() => import("./GenesisWorkspacesPanel"));
-const GenesisLogsPanel = lazy(() => import("./GenesisLogsPanel"));
-
-function PanelFallback({ label }: { label: string }) {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: "50%",
-        bottom: 24,
-        transform: "translateX(-50%)",
-        pointerEvents: "auto",
-        background: genesisTheme.glass.panel,
-        border: genesisTheme.glass.borderAccent,
-        borderRadius: genesisTheme.radius.lg,
-        padding: 16,
-        color: "white",
-        boxShadow: genesisTheme.glass.shadow,
-        backdropFilter: genesisTheme.glass.blur,
-        fontSize: 12,
-        opacity: 0.75,
-      }}
-    >
-      Loading {label}…
-    </div>
-  );
-}
+import GenesisChat from "./GenesisChat";
+import GenesisReasoningPanel from "./GenesisReasoningPanel";
+import GenesisDiagnosticsPanel from "./GenesisDiagnosticsPanel";
+import GenesisMemoryPanel from "./GenesisMemoryPanel";
+import GenesisProvidersPanel from "./GenesisProvidersPanel";
+import GenesisKnowledgePanel from "./GenesisKnowledgePanel";
+import GenesisHistoryPanel from "./GenesisHistoryPanel";
+import GenesisWorkspacesPanel from "./GenesisWorkspacesPanel";
+import GenesisLogsPanel from "./GenesisLogsPanel";
 
 export default function GenesisInterface() {
   const {
@@ -196,9 +171,7 @@ export default function GenesisInterface() {
               />
             }
           >
-            <Suspense fallback={<PanelFallback label="chat" />}>
-              <GenesisChat messages={state.messages} addMessage={addMessage} setThinking={setThinking} notify={notify} />
-            </Suspense>
+            <GenesisChat messages={state.messages} addMessage={addMessage} setThinking={setThinking} notify={notify} />
             <div style={{ fontSize: 12, opacity: 0.72, marginTop: 8 }}>
               {state.messages.length > 0 ? `${state.messages.length} messages preserved in Genesis` : "No messages yet"}
             </div>
@@ -206,51 +179,35 @@ export default function GenesisInterface() {
         ) : null}
 
         {state.activePanel === "reasoning" ? (
-          <Suspense key="reasoning" fallback={<PanelFallback label="reasoning" />}>
-            <GenesisReasoningPanel onClose={handleExitChat} />
-          </Suspense>
+          <GenesisReasoningPanel onClose={handleExitChat} />
         ) : null}
 
         {state.activePanel === "diagnostics" ? (
-          <Suspense key="diagnostics" fallback={<PanelFallback label="engine diagnostics" />}>
-            <GenesisDiagnosticsPanel onClose={handleExitChat} />
-          </Suspense>
+          <GenesisDiagnosticsPanel onClose={handleExitChat} />
         ) : null}
 
         {state.activePanel === "memory" ? (
-          <Suspense key="memory" fallback={<PanelFallback label="memory" />}>
-            <GenesisMemoryPanel onClose={handleExitChat} />
-          </Suspense>
+          <GenesisMemoryPanel onClose={handleExitChat} />
         ) : null}
 
         {state.activePanel === "providers" ? (
-          <Suspense key="providers" fallback={<PanelFallback label="providers" />}>
-            <GenesisProvidersPanel onClose={handleExitChat} />
-          </Suspense>
+          <GenesisProvidersPanel onClose={handleExitChat} />
         ) : null}
 
         {state.activePanel === "agents" ? (
-          <Suspense key="agents" fallback={<PanelFallback label="knowledge" />}>
-            <GenesisKnowledgePanel onClose={handleExitChat} />
-          </Suspense>
+          <GenesisKnowledgePanel onClose={handleExitChat} />
         ) : null}
 
         {state.activePanel === "history" ? (
-          <Suspense key="history" fallback={<PanelFallback label="history" />}>
-            <GenesisHistoryPanel onClose={handleExitChat} />
-          </Suspense>
+          <GenesisHistoryPanel onClose={handleExitChat} />
         ) : null}
 
         {state.activePanel === "workspaces" ? (
-          <Suspense key="workspaces" fallback={<PanelFallback label="workspaces" />}>
-            <GenesisWorkspacesPanel onClose={handleExitChat} />
-          </Suspense>
+          <GenesisWorkspacesPanel onClose={handleExitChat} />
         ) : null}
 
         {state.activePanel === "logs" ? (
-          <Suspense key="logs" fallback={<PanelFallback label="logs" />}>
-            <GenesisLogsPanel onClose={handleExitChat} />
-          </Suspense>
+          <GenesisLogsPanel onClose={handleExitChat} />
         ) : null}
       </AnimatePresence>
     </div>
