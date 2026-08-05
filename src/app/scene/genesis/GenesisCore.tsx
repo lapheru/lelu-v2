@@ -30,6 +30,8 @@ import {
 
   useMemo,
 
+  useCallback,
+
   useState,
 
   useRef,
@@ -405,7 +407,7 @@ export interface GenesisContextValue {
 
 
 
-const GenesisContext =
+export const GenesisContext =
 
   createContext<GenesisContextValue | null>(
 
@@ -774,34 +776,15 @@ export default function GenesisCore({
 
 
 
-  const updateUniverse =
-
-
+  const updateUniverse = useCallback(
     (
-
-      updater:
-
-      (
-
-        state:UniverseState,
-
-      )=>void,
-
-    )=>{
-
-
-      updater(
-
-        universeRef.current,
-
-      );
-
-
-
+      updater: (state: UniverseState) => void,
+    ) => {
+      updater(universeRef.current);
       publishUniverseRef.current();
-
-
-    };
+    },
+    [],
+  );
 
 
 
@@ -820,44 +803,31 @@ export default function GenesisCore({
   };
 
 
-  const dispatch = (event:string, payload?:unknown) => {
-
+  const dispatch = useCallback((event:string, payload?:unknown) => {
     void eventBusRef.current.emit(event, payload);
 
     if (runtimeRef.current) {
-
       void runtimeRef.current.dispatch(event, payload);
-
     }
+  }, []);
 
-  };
 
-
-  const selectDestination = (destination:GenesisTarget) => {
-
+  const selectDestination = useCallback((destination:GenesisTarget) => {
     setState(current => ({
-
       ...current,
-
       activeDestination: destination.id,
-
-      activeWorkspace: destination.type === "workspace" ? destination.id : current.activeWorkspace,
-
+      activeWorkspace: destination.type === "workspace"
+        ? destination.id
+        : current.activeWorkspace,
     }));
 
     dispatch("genesis:destination-selected", destination);
-
     dispatch("genesis:navigation-request", destination);
-
     dispatch("genesis:interaction", {
-
       kind: "destination",
-
       target: destination,
-
     });
-
-  };
+  }, [dispatch]);
 
 
   const value =
@@ -1266,11 +1236,11 @@ export default function GenesisCore({
 
 
       [
-
         state,
-
         universe,
-
+        dispatch,
+        selectDestination,
+        updateUniverse,
       ],
 
 

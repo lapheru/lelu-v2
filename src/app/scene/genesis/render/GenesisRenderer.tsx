@@ -4,139 +4,43 @@
  * GENESIS RENDERER
  *
  * Master visual compositor.
- *
- * Structure:
- *
- * Universe
- *  ├── Stars
- *  ├── Cosmos
- *
- * Genesis Core
- *  ├── CoreLayer
- *  │     ├── GenesisCore
- *  │     └── Mutation
- *  │
- *  ├── Atmosphere
- *  ├── Ocean
- *  ├── Life
- *  └── Memory
- *
  * ==========================================================
  */
 
+import { useFrame } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
+import { Group } from "three";
 
-import {
-  useFrame,
-} from "@react-three/fiber";
-
-
-import {
-  useRef,
-  useEffect,
-} from "react";
-
+import Cosmos from "../environment/Cosmos";
+import StarField from "../environment/stars/StarField";
+import CoreLayer from "./CoreLayer";
+import Ocean from "./ocean/Ocean";
+import HaloShell from "../materials/HaloShell";
+import LifeEvolutionVisualizer from "./LifeEvolutionVisualizer";
+import CoreMemoryVeins from "./CoreMemoryVeins";
+import CoreMutationVisualizer from "./CoreMutationVisualizer";
+import CoreAtmosphere from "../systems/CoreAtmosphere";
+import GenesisCore from "../materials/GenesisCore";
+import { useGenesis } from "../GenesisCore";
 import {
   idleGenesisSignals,
   type GenesisSignals,
 } from "../engines/GenesisSignals";
 
+export default function GenesisRenderer() {
+  const root = useRef<Group>(null);
+  const {
+    state: uiState,
+    engineRuntime,
+    updateUniverse,
+  } = useGenesis();
 
-import {
-  Group,
-} from "three";
-
-
-
-import Cosmos
-  from "../environment/Cosmos";
-
-
-import StarField
-  from "../environment/stars/StarField";
-
-
-
-import CoreLayer
-  from "./CoreLayer";
-
-
-import Ocean
-  from "./ocean/Ocean";
-
-import CrystalShell
-  from "../materials/CrystalShell";
-
-import ElectricShell
-  from "../materials/ElectricShell";
-
-import HaloShell
-  from "../materials/HaloShell";
-
-import LifeEvolutionVisualizer
-  from "./LifeEvolutionVisualizer";
-
-import CoreMemoryVeins
-  from "./CoreMemoryVeins";
-
-
-import CoreMutationVisualizer
-  from "./CoreMutationVisualizer";
-
-
-import CoreAtmosphere
-  from "../systems/CoreAtmosphere";
-
-
-import GenesisCore
-  from "../materials/GenesisCore";
-
-import { useGenesis } from "../GenesisCore";
-
-
-
-
-
-export default function GenesisRenderer(){
-
-
-  const root =
-
-    useRef<Group>(null);
-
-    const {
-
-  state: uiState,
-
-  engineRuntime,
-
-  updateUniverse,
-
-} = useGenesis();
-
-  /*
-   * Live activity signals.
-   *
-   * Derived from the interface layer (chat, cognition,
-   * engine health) and refreshed whenever that state
-   * changes — not every frame — then read from a ref inside
-   * the frame loop so engines see this tick's real activity
-   * instead of only an ambient, disconnected simulation.
-   */
-
-  const signalsRef =
-    useRef<GenesisSignals>(idleGenesisSignals);
-
-  const lastProviderRef =
-    useRef<string | undefined>(undefined);
+  const signalsRef = useRef<GenesisSignals>(idleGenesisSignals);
+  const lastProviderRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-
-    const lastMessage =
-      uiState.messages[uiState.messages.length - 1];
-
-    const provider =
-      lastMessage?.provider;
-
+    const lastMessage = uiState.messages[uiState.messages.length - 1];
+    const provider = lastMessage?.provider;
     const providerSwitched =
       provider !== undefined &&
       lastProviderRef.current !== undefined &&
@@ -147,26 +51,16 @@ export default function GenesisRenderer(){
     }
 
     signalsRef.current = {
-
       thinking: uiState.thinking,
-
       speaking: uiState.speaking,
-
       listening: uiState.listening,
-
       reasoningActive: Boolean(uiState.cognition?.reasoning),
-
       planningActive: Boolean(uiState.cognition?.plan),
-
       providerSwitched,
-
-      engineErrorCount:
-        uiState.engineStatuses.filter(
-          status => Boolean(status.error) || status.enabled === false,
-        ).length,
-
+      engineErrorCount: uiState.engineStatuses.filter(
+        status => Boolean(status.error) || status.enabled === false,
+      ).length,
     };
-
   }, [
     uiState.thinking,
     uiState.speaking,
@@ -176,130 +70,42 @@ export default function GenesisRenderer(){
     uiState.messages,
   ]);
 
-
-
   useFrame((_, delta) => {
+    if (root.current) {
+      root.current.rotation.y += delta * 0.002;
+    }
 
-  if (root.current) {
-    root.current.rotation.y += delta * 0.002;
-  }
+    if (!engineRuntime) {
+      return;
+    }
 
-  if (!engineRuntime) {
-    return;
-  }
-
-  updateUniverse((universeState) => {
-    engineRuntime.update(universeState, delta, signalsRef.current);
+    updateUniverse(universeState => {
+      engineRuntime.update(universeState, delta, signalsRef.current);
+    });
   });
 
-});
-
-
-
-
-
-
-
   return (
-
-    <group
-
-      ref={root}
-
-      name="GenesisWorld"
-
-    >
-
-
-
-
-
-      {/* ==========================================
-          OUTER COSMOS
-      ========================================== */}
-
-
-
-      <group
-
-        name="Universe"
-
-      >
-
+    <group ref={root} name="GenesisWorld">
+      <group name="Universe">
         <StarField />
-
         <Cosmos />
-
       </group>
 
-
-
-
-
-
-
-      {/* ==========================================
-          LIVING GENESIS CORE
-      ========================================== */}
-
-
-
-      <group
-
-        name="BlueGenesisCore"
-
-      >
-
-
-
-
-
-        {/* CORE BODY */}
-
-
+      <group name="BlueGenesisCore">
         <CoreLayer>
-
-
           <GenesisCore />
-
-          <CrystalShell />
-
-          <ElectricShell />
-
+          {/* The CrystalShell and ElectricShell Fresnel shells were the two
+              unwanted circular disc artifacts; the intended halo, plasma,
+              atmosphere, ocean, life, and memory layers remain active. */}
           <HaloShell />
-
           <CoreMutationVisualizer />
-
-
         </CoreLayer>
 
-      
         <Ocean />
-
-
-
-
-        {/* OUTER SHELLS */}
-
-
         <CoreAtmosphere />
-
         <LifeEvolutionVisualizer />
-
         <CoreMemoryVeins />
-
-
-
-
-
       </group>
-
-
-
-
-
     </group>
-
   );
-
 }
