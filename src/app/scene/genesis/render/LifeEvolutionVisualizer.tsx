@@ -144,8 +144,8 @@ export default function LifeEvolutionVisualizer() {
           color="#55ff99"
           transparent
           opacity={
-            0.006 +
-            energySafe * 0.012
+            0.02 +
+            energySafe * 0.05
           }
           depthWrite={false}
           toneMapped={false}
@@ -188,8 +188,8 @@ export default function LifeEvolutionVisualizer() {
                 color="#8cffb8"
                 transparent
                 opacity={
-                  0.04 +
-                  awarenessSafe * 0.10
+                  0.12 +
+                  awarenessSafe * 0.22
                 }
                 depthWrite={false}
                 toneMapped={false}
@@ -206,8 +206,8 @@ export default function LifeEvolutionVisualizer() {
       <pointLight
         color="#66ff99"
         intensity={
-          0.35 +
-          energySafe * 0.60
+          0.5 +
+          energySafe * 1.0
         }
         distance={2.8}
       />

@@ -72,11 +72,13 @@ export default function CoreMemoryVeins() {
 
   const opacity =
 
-    0.015 +
+    0.08 +
 
-    universe.memory.importance * 0.08 +
+    universe.memory.importance * 0.24 +
 
-    universe.pulse.intensity * 0.02;
+    universe.evolutionSystem.emergence * 0.08 +
+
+    universe.pulse.intensity * 0.08;
 
   return (
 
@@ -108,11 +110,11 @@ export default function CoreMemoryVeins() {
             <torusGeometry
               args={[
 
-                0.815 +
+                1.16 +
 
-                index * 0.006,
+                index * 0.012,
 
-                0.0012,
+                0.0025,
 
                 12,
 

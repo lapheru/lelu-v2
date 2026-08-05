@@ -152,23 +152,32 @@ export default function GenesisCore(){
 
     const consciousness =
 
-      liveUniverse.consciousness ?? 0;
-
-
-
-    const evolution =
-
-      liveUniverse.evolution ?? 0;
-
-
+      liveUniverse.consciousness ?? 0;    const evolutionState =
+      liveUniverse.evolutionSystem;
 
     const mutation =
 
-      liveUniverse.evolutionSystem?.mutation ?? 0;
+      evolutionState?.mutation ?? 0;
 
     const colorShift =
 
-      liveUniverse.evolutionSystem?.colorShift ?? 0;
+      evolutionState?.colorShift ?? 0;
+
+    const formChange =
+
+      evolutionState?.formChange ?? 0;
+
+    const plasma =
+
+      evolutionState?.plasma ?? 0.2;
+
+    const instability =
+
+      evolutionState?.instability ?? 0;
+
+    const growth =
+
+      evolutionState?.growth ?? 0;
 
 
 
@@ -280,11 +289,11 @@ export default function GenesisCore(){
 
           1,
 
-          evolution +
+          evolutionState.stage * 0.7 +
 
-          pulse *
+          formChange * 0.3 +
 
-          0.2
+          pulse * 0.2
 
         );
 
@@ -327,10 +336,19 @@ if (uniforms.uGrowth) {
   uniforms.uGrowth.value =
     Math.min(
       1,
-      evolution * 0.7 +
-      activity * 0.3
+      growth * 0.7 +
+      formChange * 0.2 +
+      activity * 0.1
     );
   }
+
+if (uniforms.uFormChange) {
+  uniforms.uFormChange.value = formChange;
+}
+
+if (uniforms.uInstability) {
+  uniforms.uInstability.value = instability;
+}
 
    /*
  * Ocean driven uniforms
@@ -348,7 +366,8 @@ if (uniforms.uPlasma) {
   uniforms.uPlasma.value =
     Math.max(
       0.2,
-      stability,
+      plasma * 0.78 +
+      stability * 0.22,
     );
 }
 

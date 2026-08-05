@@ -58,6 +58,7 @@ export default function CrystalShell() {
 
     const uTime = material.uniforms.uTime;
     const uActivity = material.uniforms.uActivity;
+    const uBrightness = material.uniforms.uBrightness;
 
     if (uTime?.value !== undefined) {
 
@@ -69,6 +70,12 @@ export default function CrystalShell() {
 
       uActivity.value =
         activity;
+
+    }
+
+    if (uBrightness?.value !== undefined) {
+
+      uBrightness.value = 0.95 + activity * 1.1;
 
     }
 
@@ -84,6 +91,10 @@ export default function CrystalShell() {
     shell.current.rotation.x +=
       delta * 0.015;
 
+    shell.current.scale.setScalar(
+      1 + activity * 0.16,
+    );
+
   });
 
   return (
@@ -96,16 +107,11 @@ export default function CrystalShell() {
 
       material={material}
 
-    >
-
-      <icosahedronGeometry
+    >      <icosahedronGeometry
 
         args={[
-
-          0.68,
-
+          1.02,
           64,
-
         ]}
 
       />

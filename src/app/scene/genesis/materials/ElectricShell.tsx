@@ -134,7 +134,7 @@ export default function ElectricShell() {
 
         args={[
 
-          0.78,
+          1.12,
 
           64,
 

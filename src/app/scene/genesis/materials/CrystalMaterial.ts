@@ -173,16 +173,20 @@ void main(){
 
     color *=
 
-        uBrightness;
+        uBrightness;    float visibility =
+        clamp(
+            0.18 +
+            uActivity * 0.42 +
+            fresnel * 0.72 +
+            crystal * 0.16,
+            0.12,
+            0.9
+        );
 
     gl_FragColor =
-
         vec4(
-
             color,
-
-            fresnel * 0.65
-
+            visibility
         );
 
 }

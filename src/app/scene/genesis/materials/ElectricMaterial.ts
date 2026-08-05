@@ -165,9 +165,13 @@ void main(){
         uIntensity;
 
     float alpha =
-        max(
-            arcs,
-            fresnel*0.4
+        clamp(
+            0.12 +
+            arcs * 0.95 +
+            fresnel * 0.65 +
+            uActivity * 0.18,
+            0.1,
+            0.95
         );
 
     gl_FragColor =

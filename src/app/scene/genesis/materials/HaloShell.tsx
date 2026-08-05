@@ -126,20 +126,12 @@ export default function HaloShell() {
 
       material={material}
 
-    >
-
-      <sphereGeometry
-
+    >      <sphereGeometry
         args={[
-
-          1.05,
-
+          1.28,
           96,
-
           96,
-
         ]}
-
       />
 
     </mesh>

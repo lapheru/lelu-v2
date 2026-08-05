@@ -140,7 +140,7 @@ export default function CoreMutationVisualizer() {
 
       <sphereGeometry
         args={[
-          0.735,
+          0.96,
           128,
           128,
         ]}
@@ -444,13 +444,13 @@ export default function CoreMutationVisualizer() {
 
               (
 
-                0.035 +
+                0.12 +
 
-                uActivity * 0.04 +
+                uActivity * 0.18 +
 
-                uPlasma * 0.03 +
+                uPlasma * 0.12 +
 
-                uEmergence * 0.04
+                uEmergence * 0.16
 
               )
 
