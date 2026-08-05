@@ -198,36 +198,56 @@ export default class EvolutionEngine {
     const visualStage =
       state.evolutionSystem.stage;
 
+    /*
+     * The bootstrap intentionally reaches its milestone values quickly
+     * (GenesisState.speed defaults to 120). Keep those canonical values,
+     * but let the visual channels breathe after they reach a milestone.
+     * This is still derived from the single Genesis state: it prevents a
+     * completed awakening from turning every shell and shader into a frozen
+     * frame without introducing another animation/state system.
+     */
+    const visualCycle =
+      0.5 +
+      0.5 * Math.sin(
+        state.age * 0.18 +
+        state.evolutionSystem.mutation * 4.0,
+      );
+
     state.evolutionSystem.colorShift = Math.min(
       1,
-      visualStage * 0.75 +
-      state.evolutionSystem.mutation * 0.25,
+      visualStage * 0.55 +
+      state.evolutionSystem.mutation * 0.15 +
+      visualCycle * 0.30,
     );
 
     state.evolutionSystem.formChange = Math.min(
       1,
-      visualStage * 0.60 +
-      state.evolutionSystem.adaptation * 0.40,
+      visualStage * 0.45 +
+      state.evolutionSystem.adaptation * 0.30 +
+      visualCycle * 0.25,
     );
 
     state.evolutionSystem.plasma = Math.min(
       1,
-      state.energy * 0.50 +
-      state.consciousness * 0.30 +
-      visualStage * 0.20,
+      state.energy * 0.35 +
+      state.consciousness * 0.25 +
+      visualStage * 0.20 +
+      visualCycle * 0.20,
     );
 
     state.evolutionSystem.emergence = Math.min(
       1,
       Math.max(state.life, state.awareness) *
-      (0.50 + visualStage * 0.50),
+      (0.50 + visualStage * 0.35) +
+      visualCycle * 0.15,
     );
 
     state.evolutionSystem.instability = Math.min(
       1,
-      state.chaos * 0.45 +
-      (1 - state.stability) * 0.35 +
-      state.evolutionSystem.mutation * 0.20,
+      state.chaos * 0.35 +
+      (1 - state.stability) * 0.25 +
+      state.evolutionSystem.mutation * 0.20 +
+      (1 - visualCycle) * 0.20,
     );
 
     this.updateEra(state);

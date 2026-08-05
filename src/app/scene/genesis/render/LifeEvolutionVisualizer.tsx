@@ -18,7 +18,7 @@ import { useGenesis } from "../GenesisCore";
 
 export default function LifeEvolutionVisualizer() {
 
-  const { universe } = useGenesis();
+  const { universe, getLiveUniverse } = useGenesis();
 
   const lifeGroup = useRef<Group>(null);
 
@@ -45,26 +45,28 @@ export default function LifeEvolutionVisualizer() {
 
     time.current += delta;
 
+    const liveUniverse = getLiveUniverse();
+
     const life =
-      universe.life ?? 0;
+      liveUniverse.life ?? 0;
 
     const energy =
-      universe.energy ?? 0;
+      liveUniverse.energy ?? 0;
 
     const awareness =
-      universe.awareness ?? 0;
+      liveUniverse.awareness ?? 0;
 
     const intelligence =
-      universe.intelligence ?? 0;
+      liveUniverse.intelligence ?? 0;
 
     const growth =
-      universe.evolutionSystem?.growth ?? 0;
+      liveUniverse.evolutionSystem?.growth ?? 0;
 
     const mutation =
-      universe.evolutionSystem?.mutation ?? 0;
+      liveUniverse.evolutionSystem?.mutation ?? 0;
 
     const adaptation =
-      universe.evolutionSystem?.adaptation ?? 0;
+      liveUniverse.evolutionSystem?.adaptation ?? 0;
 
     const activity =
 

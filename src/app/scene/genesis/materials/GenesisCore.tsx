@@ -49,7 +49,7 @@ export default function GenesisCore(){
 
   const {
 
-    universe,
+    getLiveUniverse,
 
     openPanel,
 
@@ -136,37 +136,39 @@ export default function GenesisCore(){
      */
 
 
+    const liveUniverse = getLiveUniverse();
+
     const energy =
 
-      universe.energy ?? 0;
+      liveUniverse.energy ?? 0;
 
 
 
     const awareness =
 
-      universe.awareness ?? 0;
+      liveUniverse.awareness ?? 0;
 
 
 
     const consciousness =
 
-      universe.consciousness ?? 0;
+      liveUniverse.consciousness ?? 0;
 
 
 
     const evolution =
 
-      universe.evolution ?? 0;
+      liveUniverse.evolution ?? 0;
 
 
 
     const mutation =
 
-      universe.evolutionSystem?.mutation ?? 0;
+      liveUniverse.evolutionSystem?.mutation ?? 0;
 
     const colorShift =
 
-      universe.evolutionSystem?.colorShift ?? 0;
+      liveUniverse.evolutionSystem?.colorShift ?? 0;
 
 
 
@@ -222,6 +224,10 @@ export default function GenesisCore(){
 
 
         pulse +
+
+        (liveUniverse.pulse?.intensity ?? 0) *
+
+        0.12 +
 
         energy *
 
@@ -330,7 +336,7 @@ if (uniforms.uGrowth) {
  * Ocean driven uniforms
  */
 
-const ocean = universe.ocean;
+const ocean = liveUniverse.ocean;
 
 const tide = ocean.tide;
 const current = ocean.current;
@@ -374,11 +380,15 @@ if (uniforms.uOceanCurrent) {
     current;
 }
 
-if (uniforms.uColorShift) {
-  uniforms.uColorShift.value =
-    colorShift * 0.8 +
-    mutation * 0.15 +
-    tide * 0.05;
+if (uniforms.uColorShift) {  uniforms.uColorShift.value =
+
+    Math.min(
+      1,
+      colorShift * 0.78 +
+      mutation * 0.12 +
+      tide * 0.05 +
+      (0.5 + 0.5 * Math.sin(liveUniverse.age * 0.12)) * 0.10,
+    );
 }
 
 

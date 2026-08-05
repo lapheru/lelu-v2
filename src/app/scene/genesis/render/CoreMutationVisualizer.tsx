@@ -17,7 +17,7 @@ import { useGenesis } from "../GenesisCore";
 
 export default function CoreMutationVisualizer() {
 
-  const { universe } = useGenesis();
+  const { getLiveUniverse } = useGenesis();
 
   const field = useRef<Mesh>(null);
 
@@ -32,8 +32,10 @@ export default function CoreMutationVisualizer() {
 
     time.current += delta;
 
+    const liveUniverse = getLiveUniverse();
+
     const evo =
-      universe.evolutionSystem;
+      liveUniverse.evolutionSystem;
 
     const mutation =
       evo?.mutation ?? 0;
@@ -54,7 +56,7 @@ export default function CoreMutationVisualizer() {
       evo?.emergence ?? 0;
 
     const awareness =
-      universe.awareness ?? 0;
+      liveUniverse.awareness ?? 0;
 
     const activity =
       Math.max(

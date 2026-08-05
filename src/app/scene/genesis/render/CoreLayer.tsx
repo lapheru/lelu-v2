@@ -28,7 +28,7 @@ export default function CoreLayer({
   children,
 }: Props) {
 
-  const { universe } = useGenesis();
+  const { getLiveUniverse } = useGenesis();
 
   const root = useRef<Group>(null);
 
@@ -41,11 +41,13 @@ export default function CoreLayer({
 
     time.current += delta;
 
+    const liveUniverse = getLiveUniverse();
+
     const energy =
-      universe.energy ?? 0;
+      liveUniverse.energy ?? 0;
 
     const awareness =
-      universe.awareness ?? 0;
+      liveUniverse.awareness ?? 0;
 
     const activity =
       Math.max(

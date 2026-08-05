@@ -19,7 +19,7 @@ import { useGenesis } from "../GenesisCore";
 
 export default function CoreMemoryVeins() {
 
-  const { universe } = useGenesis();
+  const { universe, getLiveUniverse } = useGenesis();
 
   const group = useRef<Group>(null);
 
@@ -36,18 +36,20 @@ export default function CoreMemoryVeins() {
     if (!group.current)
       return;
 
+    const liveUniverse = getLiveUniverse();
+
     const memoryEnergy = (
 
-      universe.memory.shortTerm +
+      liveUniverse.memory.shortTerm +
 
-      universe.memory.longTerm +
+      liveUniverse.memory.longTerm +
 
-      universe.memory.archived
+      liveUniverse.memory.archived
 
     ) * 0.33;
 
     const emergence =
-      universe.evolutionSystem.emergence;
+      liveUniverse.evolutionSystem.emergence;
 
     group.current.rotation.y +=
       delta *

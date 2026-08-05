@@ -246,6 +246,12 @@ export interface GenesisContextValue {
 
   universe:UniverseState;
 
+  /**
+   * Read the mutable simulation snapshot from animation-frame code without
+   * waiting for the throttled React publication used by the interface.
+   */
+  getLiveUniverse:()=>UniverseState;
+
   engineRuntime:EngineRuntime | null;
 
   engineStatuses:EngineStatus[];
@@ -614,6 +620,7 @@ export default function GenesisCore({
 
   ] = useState(0);
   const lastUniversePublishRef = useRef(0);
+  const publishUniverseRef = useRef<() => void>(() => undefined);
 
   useEffect(() => {
 
@@ -791,11 +798,7 @@ export default function GenesisCore({
 
 
 
-      const now = Date.now();
-      if (now - lastUniversePublishRef.current >= 100) {
-        lastUniversePublishRef.current = now;
-        setUniverseVersion(value => value + 1);
-      }
+      publishUniverseRef.current();
 
 
     };
@@ -804,6 +807,17 @@ export default function GenesisCore({
 
 
 
+
+
+  publishUniverseRef.current = () => {
+    const now = Date.now();
+    if (now - lastUniversePublishRef.current < 100) {
+      return;
+    }
+
+    lastUniversePublishRef.current = now;
+    setUniverseVersion(value => value + 1);
+  };
 
 
   const dispatch = (event:string, payload?:unknown) => {
@@ -850,15 +864,14 @@ export default function GenesisCore({
 
     useMemo<GenesisContextValue>(
 
-      ()=>({
-
-
-        state,
+      ()=>({        state,
 
 
         universe,
 
-            engineRuntime: runtimeRef.current,
+        getLiveUniverse: () => universeRef.current,
+
+        engineRuntime: runtimeRef.current,
 
         engineStatuses: state.engineStatuses,
 

@@ -37,6 +37,7 @@ import GenesisLogsPanel from "./GenesisLogsPanel";
 export default function GenesisInterface() {
   const {
     state,
+    universe,
     openPanel,
     focusWorkspace,
     selectDestination,
@@ -46,6 +47,17 @@ export default function GenesisInterface() {
   } = useGenesis();
 
   const workspaces = useMemo(() => state.cognition?.workspaces ?? [], [state.cognition?.workspaces]);
+  const evolutionStage = Math.max(0, Math.min(1, universe.evolutionSystem.stage));
+  const pulse = universe.pulse.heartbeat;
+  const interfaceActivity = Math.max(
+    0.12,
+    Math.min(1, pulse * 0.45 + universe.evolutionSystem.emergence * 0.35 + universe.awareness * 0.2),
+  );
+  const evolutionColor = universe.evolutionSystem.colorShift > 0.72
+    ? "#fbbf24"
+    : universe.evolutionSystem.colorShift > 0.42
+      ? "#a78bfa"
+      : "#67e8f9";
 
   function handleWorkspace(id: string, name: string, index: number) {
     focusWorkspace(id);
@@ -96,8 +108,8 @@ export default function GenesisInterface() {
         <div
           style={{
             pointerEvents: "auto",
-            background: genesisTheme.glass.chip,
-            border: genesisTheme.glass.borderSoft,
+            background: `rgba(8, 16, 38, ${0.72 + interfaceActivity * 0.12})`,
+            border: `1px solid ${evolutionColor}${Math.round((0.24 + interfaceActivity * 0.32) * 255).toString(16).padStart(2, "0")}`,
             borderRadius: genesisTheme.radius.md,
             padding: "10px 14px",
             color: "white",
@@ -107,7 +119,9 @@ export default function GenesisInterface() {
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: workspaces.length ? 8 : 0 }}>
             <strong>Genesis</strong>
-            <span style={{ opacity: 0.75, fontSize: 12 }}>{state.runtimeReady ? "Live" : "Booting"}</span>
+            <span style={{ opacity: 0.75, fontSize: 12 }}>
+              {state.runtimeReady ? `Live · ${Math.round(pulse * 100)}% pulse` : "Booting"}
+            </span>
           </div>
 
           {workspaces.length > 0 ? (
@@ -135,6 +149,21 @@ export default function GenesisInterface() {
 
           <div style={{ opacity: 0.65, fontSize: 11 }}>
             {state.activeDestination ? `At: ${state.activeDestination}` : "No active destination"}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 10, opacity: 0.8 }}>
+            <span
+              aria-hidden
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 999,
+                background: evolutionColor,
+                boxShadow: `0 0 ${6 + pulse * 8}px ${evolutionColor}`,
+                transform: `scale(${0.8 + pulse * 0.45})`,
+                transition: "transform 100ms linear, box-shadow 100ms linear",
+              }}
+            />
+            <span>Evolution {Math.round(evolutionStage * 100)}% · cycle {Math.floor(universe.age)}</span>
           </div>
         </div>
 

@@ -86,6 +86,7 @@ export default function Ocean(){
   const {
 
     universe,
+    getLiveUniverse,
 
   } = useGenesis();
 
@@ -126,15 +127,8 @@ export default function Ocean(){
 
 
 
-    time.current += delta;
-
-
-
-
-
-    const ocean =
-
-      universe.ocean;
+    time.current += delta;    const ocean =
+      getLiveUniverse().ocean;
 
 
 

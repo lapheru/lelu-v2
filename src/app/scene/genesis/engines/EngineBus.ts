@@ -78,15 +78,44 @@ export default class EngineBus {
     const clamp = (value: number) => Math.max(0, Math.min(1, value));
     const target: EngineWeights = {
 
-      plasma: clamp(0.35 + state.energy * 0.35 + state.evolution * 0.3),
+      // Use the live evolution channels and heartbeat as well as the
+      // slowly growing universe values. This keeps shell activity alive
+      // after the awakening sequence reaches its long-term caps.
+      plasma: clamp(
+        0.18 +
+        state.evolutionSystem.plasma * 0.42 +
+        state.pulse.intensity * 0.30 +
+        state.evolutionSystem.instability * 0.10,
+      ),
 
-      ocean: clamp(state.ocean.stability),
+      ocean: clamp(
+        state.ocean.stability * 0.60 +
+        state.ocean.wave * 0.20 +
+        state.pulse.heartbeat * 0.20,
+      ),
 
-      crystal: clamp(0.25 + state.stability * 0.4 + state.evolution * 0.35),
+      crystal: clamp(
+        0.14 +
+        state.evolutionSystem.formChange * 0.46 +
+        state.evolutionSystem.stage * 0.20 +
+        state.pulse.heartbeat * 0.20,
+      ),
 
-      electric: clamp(0.25 + state.energy * 0.45 + state.awareness * 0.3),
+      electric: clamp(
+        0.12 +
+        state.energy * 0.25 +
+        state.pulse.intensity * 0.30 +
+        state.evolutionSystem.mutation * 0.18 +
+        state.awareness * 0.15,
+      ),
 
-      halo: clamp(0.35 + state.consciousness * 0.35 + state.existence * 0.3),
+      halo: clamp(
+        0.18 +
+        state.evolutionSystem.emergence * 0.30 +
+        state.consciousness * 0.20 +
+        state.pulse.heartbeat * 0.20 +
+        state.existence * 0.12,
+      ),
 
     };
 
