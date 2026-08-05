@@ -36,6 +36,9 @@ export interface GenesisEngine {
 
   readonly priority?: number;
 
+  /** Optional simulation cadence metadata. Undefined means render-driven. */
+  readonly targetFrequency?: number;
+
 
   enabled?: boolean;
 
@@ -72,6 +75,27 @@ getWeight?(
 
 
 
+export interface EngineTelemetry {
+
+  updateFrequency: number;
+
+  targetFrequency?: number;
+
+  deltaTime: number;
+
+  lastUpdateTimestamp: number;
+
+  updateCount: number;
+
+  stateWriteConfirmed: boolean;
+
+  rendererReadConfirmed: boolean;
+
+  rendererReadCount: number;
+
+}
+
+
 export interface EngineStatus {
 
 
@@ -85,6 +109,8 @@ export interface EngineStatus {
 
 
   error?:string;
+
+  telemetry: EngineTelemetry;
 
 
 }
@@ -103,6 +129,9 @@ export default class EngineRegistry {
     new Map<string, GenesisEngine>();
 
   private fallbackId = 0;
+
+  private readonly telemetry =
+    new Map<string, EngineTelemetry>();
 
 
 
@@ -160,6 +189,17 @@ export default class EngineRegistry {
 
     );
 
+    this.telemetry.set(id, {
+      updateFrequency: 0,
+      targetFrequency: engine.targetFrequency,
+      deltaTime: 0,
+      lastUpdateTimestamp: 0,
+      updateCount: 0,
+      stateWriteConfirmed: false,
+      rendererReadConfirmed: false,
+      rendererReadCount: 0,
+    });
+
 
 
   }
@@ -174,14 +214,10 @@ export default class EngineRegistry {
 
     id:string,
 
-  ):void {
-
-
-    this.engines.delete(
-
+  ):void {    this.engines.delete(
       id,
-
     );
+    this.telemetry.delete(id);
 
 
   }
@@ -393,9 +429,13 @@ export default class EngineRegistry {
 
 
 
+      const telemetry = this.telemetry.get(
+        this.getId(engine),
+      );
+      const before = JSON.stringify(state);
+      const updateStarted = this.now();
+
       try {
-
-
 
         engine.update(
 
@@ -407,7 +447,16 @@ export default class EngineRegistry {
 
         );
 
-
+        if (telemetry) {
+          telemetry.updateCount += 1;
+          telemetry.deltaTime = delta;
+          telemetry.lastUpdateTimestamp = updateStarted;
+          telemetry.stateWriteConfirmed =
+            before !== JSON.stringify(state);
+          telemetry.updateFrequency =
+            telemetry.updateCount /
+            Math.max(delta * telemetry.updateCount, Number.EPSILON);
+        }
 
 
 
@@ -419,6 +468,14 @@ export default class EngineRegistry {
         engine.error = error instanceof Error ? error.message : String(error);
 
 
+
+        if (telemetry) {
+          telemetry.updateCount += 1;
+          telemetry.deltaTime = delta;
+          telemetry.lastUpdateTimestamp = updateStarted;
+          telemetry.stateWriteConfirmed =
+            before !== JSON.stringify(state);
+        }
 
         console.error(
 
@@ -509,8 +566,60 @@ export default class EngineRegistry {
 
         error: engine.error,
 
+        telemetry: {
+          ...(this.telemetry.get(id) ?? this.emptyTelemetry()),
+        },
+
       }));
 
+  }
+
+  markRendererRead(): void {
+    const timestamp = this.now();
+
+    for (const [id, engine] of this.engines) {
+      if (engine.enabled === false) {
+        continue;
+      }
+
+      const telemetry = this.telemetry.get(id);
+      if (!telemetry) {
+        continue;
+      }
+
+      telemetry.rendererReadCount += 1;
+      telemetry.rendererReadConfirmed = true;
+      telemetry.lastUpdateTimestamp =
+        telemetry.lastUpdateTimestamp || timestamp;
+    }
+  }
+
+  private getId(engine: GenesisEngine): string {
+    for (const [id, registered] of this.engines) {
+      if (registered === engine) {
+        return id;
+      }
+    }
+
+    return engine.id ?? engine.constructor.name;
+  }
+
+  private emptyTelemetry(): EngineTelemetry {
+    return {
+      updateFrequency: 0,
+      deltaTime: 0,
+      lastUpdateTimestamp: 0,
+      updateCount: 0,
+      stateWriteConfirmed: false,
+      rendererReadConfirmed: false,
+      rendererReadCount: 0,
+    };
+  }
+
+  private now(): number {
+    return typeof performance !== "undefined"
+      ? performance.now()
+      : Date.now();
   }
 
 
@@ -523,6 +632,7 @@ export default class EngineRegistry {
 
 
     this.engines.clear();
+    this.telemetry.clear();
 
 
   }

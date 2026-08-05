@@ -83,6 +83,10 @@ export default function GenesisRenderer() {
 
     updateUniverse(universeState => {
       engineRuntime.update(universeState, delta, signalsRef.current);
+      // The renderer samples the same canonical state after simulation and
+      // EngineBus propagation, so telemetry can prove the read path without
+      // introducing a second visual-state store.
+      engineRuntime.markRendererRead();
     });
   });
 

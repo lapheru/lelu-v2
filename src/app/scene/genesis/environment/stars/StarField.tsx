@@ -62,7 +62,7 @@ export default function StarField(){
 
   const {
 
-    universe,
+    getLiveUniverse,
 
   } = useGenesis();
 
@@ -215,9 +215,10 @@ export default function StarField(){
 
 
 
+    const liveUniverse = getLiveUniverse();
     const cosmicEnergy =
 
-      universe.celestial?.cosmicEnergy
+      liveUniverse.celestial?.cosmicEnergy
 
       ??
 
@@ -255,7 +256,7 @@ export default function StarField(){
 
       0.08 +
 
-      universe.light *
+      liveUniverse.light *
 
       0.03;
 

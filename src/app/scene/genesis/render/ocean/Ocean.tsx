@@ -73,6 +73,10 @@ export interface OceanState {
 
   caustics?:number;
 
+  stormSurge?:number;
+
+  stability?:number;
+
 }
 
 
@@ -129,6 +133,18 @@ export default function Ocean(){
 
     time.current += delta;    const ocean =
       getLiveUniverse().ocean;
+
+    // Keep the shared prop object current for the nested ocean graph. The
+    // graph remains mounted once, while every child samples canonical state
+    // at render frequency instead of waiting for a React snapshot.
+    oceanState.tide = ocean.tide;
+    oceanState.current = ocean.current;
+    oceanState.wave = ocean.wave;
+    oceanState.waveHeight = ocean.wave;
+    oceanState.tsunami = ocean.tsunami;
+    oceanState.stormSurge = ocean.stormSurge;
+    oceanState.stability = ocean.stability;
+    oceanState.caustics = ocean.wave;
 
 
 

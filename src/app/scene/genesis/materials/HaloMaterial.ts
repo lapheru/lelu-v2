@@ -72,8 +72,6 @@ void main(){
 
       fragmentShader: `
 
-uniform vec3 cameraPosition;
-
 uniform float uTime;
 uniform float uIntensity;
 uniform float uActivity;

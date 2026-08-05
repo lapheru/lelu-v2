@@ -134,6 +134,11 @@ update(
 }
 
 
+markRendererRead(): void {
+  this.registry.markRendererRead();
+}
+
+
 getEngineBus(): EngineBus {
 
   return this.engineBus;
