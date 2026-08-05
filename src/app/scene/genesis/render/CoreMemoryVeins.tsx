@@ -86,6 +86,8 @@ export default function CoreMemoryVeins() {
             key={index}
             rotation={[
 
+              Math.PI * 0.35 +
+
               index * 0.45,
 
               index * 0.78,
