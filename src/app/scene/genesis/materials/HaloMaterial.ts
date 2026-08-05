@@ -31,6 +31,10 @@ export default class HaloMaterial extends ShaderMaterial {
           value: 1,
         },
 
+        uActivity: {
+          value: 0,
+        },
+
         uColor: {
           value: new Color("#7ce7ff"),
         },
@@ -72,6 +76,7 @@ uniform vec3 cameraPosition;
 
 uniform float uTime;
 uniform float uIntensity;
+uniform float uActivity;
 uniform vec3 uColor;
 
 varying vec3 vWorldPosition;
@@ -125,7 +130,8 @@ void main(){
         fresnel *
         pulse *
         shimmer *
-        uIntensity;
+        uIntensity *
+        (0.8 + uActivity * 0.7);
 
     vec3 color =
         uColor *
@@ -135,7 +141,7 @@ void main(){
         vec4(
             color,
             glow *
-            0.65
+            (0.42 + uActivity * 0.38)
         );
 
 }

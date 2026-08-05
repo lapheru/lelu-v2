@@ -13,7 +13,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import { Group } from "three";
+import { Group, Mesh, MeshBasicMaterial } from "three";
 
 import { useGenesis } from "../GenesisCore";
 
@@ -68,17 +68,29 @@ export default function CoreMemoryVeins() {
       memoryEnergy * 0.02
     );
 
+    const liveOpacity = Math.min(
+      0.62,
+      0.12 +
+      liveUniverse.memory.importance * 0.30 +
+      emergence * 0.16 +
+      (liveUniverse.pulse.intensity ?? 0) * 0.10,
+    );
+
+    group.current.children.forEach((child) => {
+      const mesh = child as Mesh;
+      const material = mesh.material as MeshBasicMaterial;
+      material.opacity = liveOpacity;
+    });
+
   });
 
-  const opacity =
+  const opacity =      0.12 +
 
-    0.08 +
+    universe.memory.importance * 0.30 +
 
-    universe.memory.importance * 0.24 +
+    universe.evolutionSystem.emergence * 0.16 +
 
-    universe.evolutionSystem.emergence * 0.08 +
-
-    universe.pulse.intensity * 0.08;
+    universe.pulse.intensity * 0.10;
 
   return (
 

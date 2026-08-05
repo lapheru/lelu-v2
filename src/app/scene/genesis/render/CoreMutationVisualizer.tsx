@@ -135,7 +135,7 @@ export default function CoreMutationVisualizer() {
     <mesh
       ref={field}
       name="MutationPlasma"
-      renderOrder={5}
+      renderOrder={203}
     >
 
       <sphereGeometry

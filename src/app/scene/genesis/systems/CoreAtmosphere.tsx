@@ -17,9 +17,14 @@ import {
   AdditiveBlending,
   Group,
   Mesh,
+  MeshBasicMaterial,
 } from "three";
 
+import { useGenesis } from "../GenesisCore";
+
 export default function CoreAtmosphere() {
+
+  const { getLiveUniverse } = useGenesis();
 
   const field = useRef<Group>(null);
 
@@ -47,8 +52,24 @@ export default function CoreAtmosphere() {
     field.current.rotation.y +=
       delta * 0.012;
 
+    const liveUniverse = getLiveUniverse();
+    const activity = Math.min(
+      1,
+      0.18 +
+      liveUniverse.energy * 0.30 +
+      liveUniverse.awareness * 0.22 +
+      liveUniverse.evolutionSystem.emergence * 0.30,
+    );
+
     const breathe =
       Math.sin(time.current * 0.55);
+
+    const auraMaterial = aura.current.material as MeshBasicMaterial;
+    const auroraMaterial = aurora.current.material as MeshBasicMaterial;
+    const resonanceMaterial = resonance.current.material as MeshBasicMaterial;
+    auraMaterial.opacity = 0.07 + activity * 0.08;
+    auroraMaterial.opacity = 0.04 + activity * 0.07;
+    resonanceMaterial.opacity = 0.025 + activity * 0.05;
 
     aura.current.scale.setScalar(
       1 +
@@ -84,7 +105,7 @@ export default function CoreAtmosphere() {
 
         <sphereGeometry
           args={[
-            0.780,
+            0.94,
             96,
             96,
           ]}
@@ -110,7 +131,7 @@ export default function CoreAtmosphere() {
 
         <sphereGeometry
           args={[
-            0.792,
+            0.99,
             96,
             96,
           ]}
@@ -136,7 +157,7 @@ export default function CoreAtmosphere() {
 
         <sphereGeometry
           args={[
-            0.806,
+            1.04,
             96,
             96,
           ]}

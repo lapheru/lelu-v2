@@ -110,7 +110,8 @@ export default function HaloShell() {
 
     shell.current.scale.setScalar(
 
-      breathe
+      breathe +
+      activity * 0.04
 
     );
 
