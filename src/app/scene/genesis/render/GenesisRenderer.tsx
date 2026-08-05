@@ -23,6 +23,7 @@ import CoreMemoryVeins from "./CoreMemoryVeins";
 import CoreMutationVisualizer from "./CoreMutationVisualizer";
 import CoreAtmosphere from "../systems/CoreAtmosphere";
 import GenesisCore from "../materials/GenesisCore";
+import GenesisLegacyVisualMigration from "./GenesisLegacyVisualMigration";
 import { useGenesis } from "../GenesisCore";
 import {
   idleGenesisSignals,
@@ -95,6 +96,7 @@ export default function GenesisRenderer() {
       <group name="Universe">
         <StarField />
         <Cosmos />
+        <GenesisLegacyVisualMigration />
       </group>
 
       <group name="BlueGenesisCore">
