@@ -41,11 +41,12 @@ export default class EngineRuntime {
 
   private readonly registry:
 
-    EngineRegistry;
-
-private readonly engineBus:
+    EngineRegistry;  private readonly engineBus:
 
   EngineBus;
+
+  private lastState: GenesisState | undefined;
+
 
 
 
@@ -87,9 +88,13 @@ this.engineBus =
 
 
 
-  async dispatch(event:string, payload?:unknown): Promise<void> {
+  async dispatch(event: string, payload?: unknown): Promise<void> {
 
-    await this.registry.dispatch(event, payload);
+    await this.registry.dispatch(
+      event,
+      payload,
+      this.lastState,
+    );
 
   }
 
@@ -101,6 +106,8 @@ update(
   delta: number,
   signals?: GenesisSignals,
 ): void {
+
+  this.lastState = state;
 
   this.registry.update(
     state,

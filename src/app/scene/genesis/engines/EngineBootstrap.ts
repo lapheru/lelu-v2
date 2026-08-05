@@ -53,6 +53,7 @@ import MemoryEvolutionEngine from "./MemoryEvolutionEngine";
 import DreamEngine from "./DreamEngine";
 import CreationEngine from "./CreationEngine";
 import WisdomEngine from "./WisdomEngine";
+import InteractionEngine from "./InteractionEngine";
 
 
 
@@ -155,6 +156,8 @@ export default class EngineBootstrap {
       new CreationEngine(),
 
       new WisdomEngine(),
+
+      new InteractionEngine(),
 
       new TimelineEngine(),
 

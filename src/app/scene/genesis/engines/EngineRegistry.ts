@@ -49,7 +49,11 @@ getWeight?(
 
   initialize?(): void | Promise<void>;
 
-  handleEvent?(event: string, payload?: unknown): void | Promise<void>;
+  handleEvent?(
+    event: string,
+    payload?: unknown,
+    state?: GenesisState,
+  ): void | Promise<void>;
 
   update?(
 
@@ -307,7 +311,11 @@ export default class EngineRegistry {
 
 
 
-  async dispatch(event:string, payload?:unknown): Promise<void> {
+  async dispatch(
+    event: string,
+    payload?: unknown,
+    state?: GenesisState,
+  ): Promise<void> {
 
     for (const engine of this.getAll()) {
 
@@ -319,7 +327,7 @@ export default class EngineRegistry {
 
       try {
 
-        await engine.handleEvent?.(event, payload);
+        await engine.handleEvent?.(event, payload, state);
 
       }
 
