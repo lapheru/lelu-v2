@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
+    "@vly-ai/integrations": "^0.6.12",
     "framer-motion": "^12.42.2",
     "openai": "^6.45.0",
     "react": "^19.2.7",
