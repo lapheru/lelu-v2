@@ -70,8 +70,8 @@ export default function CoreLayer({
       ) *
 
       (
-        0.0025 +
-        activity * 0.0035
+        0.009 +
+        activity * 0.016
       );
 
     root.current.scale.setScalar(
@@ -81,15 +81,15 @@ export default function CoreLayer({
     root.current.rotation.y +=
       delta *
       (
-        0.010 +
-        activity * 0.010
+        0.026 +
+        activity * 0.045
       );
 
     root.current.rotation.x =
       Math.sin(
         time.current * 0.18,
       ) *
-      0.008;
+      0.022;
 
     root.current.rotation.z =
       Math.cos(

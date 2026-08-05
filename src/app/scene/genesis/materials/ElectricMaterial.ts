@@ -60,8 +60,8 @@ void main(){
         sin(position.z*30.0+uTime*12.0)*0.5;
 
     crackle *=
-        0.012 *
-        (1.0 + uActivity);
+        0.032 *
+        (1.0 + uActivity * 1.8);
 
     vec3 displaced =
         position +
@@ -151,8 +151,8 @@ void main(){
     vec3 color =
         uColor *
         (
-            arcs * 2.0 +
-            fresnel
+            arcs * 3.2 +
+            fresnel * 1.4
         );
 
     color *=
@@ -166,10 +166,10 @@ void main(){
 
     float alpha =
         clamp(
-            0.12 +
-            arcs * 0.95 +
-            fresnel * 0.65 +
-            uActivity * 0.18,
+            0.18 +
+            arcs * 1.2 +
+            fresnel * 0.82 +
+            uActivity * 0.24,
             0.1,
             0.95
         );

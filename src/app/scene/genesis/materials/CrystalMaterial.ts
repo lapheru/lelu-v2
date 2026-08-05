@@ -60,17 +60,17 @@ void main(){
         sin(
             uTime * 2.0 +
             position.y * 8.0
-        ) * 0.01;
+        ) * 0.032;
 
     pulse +=
         sin(
             uTime * 0.8 +
             position.x * 4.0
-        ) * 0.006;
+        ) * 0.018;
 
     pulse *=
         1.0 +
-        uActivity * 0.35;
+        uActivity * 1.8;
 
     vec3 displaced =
         position +
@@ -159,11 +159,11 @@ void main(){
 
     color *=
 
-        0.45 +
+        0.62 +
 
         crystal *
 
-        0.9;
+        1.15;
 
     color *=
 
@@ -175,10 +175,10 @@ void main(){
 
         uBrightness;    float visibility =
         clamp(
-            0.18 +
-            uActivity * 0.42 +
-            fresnel * 0.72 +
-            crystal * 0.16,
+            0.24 +
+            uActivity * 0.5 +
+            fresnel * 0.86 +
+            crystal * 0.22,
             0.12,
             0.9
         );
