@@ -86,7 +86,11 @@ export default function GenesisDock({
   const isLive = thinking || speaking;
 
   const [downloading, setDownloading] = useState(false);
-  const [downloadFailed, setDownloadFailed] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloadDone, setDownloadDone] = useState(false);
+
+  const base = typeof import.meta.env.BASE_URL === "string" ? import.meta.env.BASE_URL : "/";
+  const zipHref = `${base}lelu-project.zip`;
 
   const statusColor = hasErrors
     ? genesisTheme.status.error
@@ -126,26 +130,51 @@ export default function GenesisDock({
     return {};
   }
 
-  async function downloadProjectZip() {
-    if (downloading) return;
+  async function handleZipDownload(event: { preventDefault(): void }) {
+    const savePicker = (
+      window as unknown as {
+        showSaveFilePicker?: (opts?: unknown) => Promise<unknown>;
+      }
+    ).showSaveFilePicker;
+
+    // Browsers without the File System Access API get the plain native
+    // download of the linked file (anchor `download` attribute).
+    if (typeof savePicker !== "function") return;
+
+    event.preventDefault();
     setDownloading(true);
-    setDownloadFailed(false);
+    setDownloadError(null);
+    setDownloadDone(false);
     try {
-      const base = typeof import.meta.env.BASE_URL === "string" ? import.meta.env.BASE_URL : "/";
-      const response = await fetch(`${base}lelu-project.zip`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const response = await fetch(zipHref, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status} for ${zipHref}`);
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "lelu-project.zip";
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+      if (blob.size < 1000) throw new Error("Downloaded file looks empty");
+      try {
+        const handle = (await savePicker({
+          suggestedName: "lelu-project.zip",
+          types: [{ description: "ZIP archive", accept: { "application/zip": [".zip"] } }],
+        })) as {
+          createWritable: () => Promise<{
+            write: (data: Blob) => Promise<void>;
+            close: () => Promise<void>;
+          }>;
+        };
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        setDownloadDone(true);
+      } catch (pickerError) {
+        if ((pickerError as Error)?.name === "AbortError") return; // user cancelled
+        throw pickerError;
+      }
     } catch (error) {
-      setDownloadFailed(true);
+      const message = error instanceof Error ? error.message : String(error);
+      setDownloadError(message);
       console.error("[GenesisDock] Project ZIP download failed:", error);
+      // Last resort: open the served file in a new tab so the browser
+      // handles it natively. Right-click → "Save link as…" always works.
+      window.open(zipHref, "_blank", "noopener");
     } finally {
       setDownloading(false);
     }
@@ -198,13 +227,18 @@ export default function GenesisDock({
             </button>
           );
         })}
-        <button
-          type="button"
-          title={downloadFailed ? "Download failed — retry" : "Download project ZIP"}
-          onClick={downloadProjectZip}
+        <a
+          href={zipHref}
+          download="lelu-project.zip"
+          onClick={handleZipDownload}
+          title={
+            downloadError
+              ? `Download blocked: ${downloadError} — right-click → "Save link as…"`
+              : "Download project ZIP (right-click → “Save link as…” if no download starts)"
+          }
           style={{
             flexShrink: 0,
-            border: downloadFailed
+            border: downloadError
               ? `1px solid ${genesisTheme.status.error}`
               : genesisTheme.glass.borderSoft,
             borderRadius: genesisTheme.radius.pill,
@@ -216,11 +250,12 @@ export default function GenesisDock({
             alignItems: "center",
             gap: 6,
             cursor: "pointer",
+            textDecoration: "none",
           }}
         >
-          <span aria-hidden>{downloading ? "◌" : "⬇"}</span>
-          {downloading ? "Preparing…" : "ZIP"}
-        </button>
+          <span aria-hidden>{downloading ? "◌" : downloadDone ? "✓" : "⬇"}</span>
+          {downloading ? "Preparing…" : downloadDone ? "Saved" : "ZIP"}
+        </a>
       </div>
     );
   }
@@ -299,14 +334,19 @@ export default function GenesisDock({
       ))}
 
       <div style={{ height: 1, background: "rgba(255,255,255,0.1)", margin: "4px 4px 0" }} />
-      <button
-        type="button"
-        title={downloadFailed ? "Download failed — file not served yet, retry" : "Download project ZIP"}
-        onClick={downloadProjectZip}
+      <a
+        href={zipHref}
+        download="lelu-project.zip"
+        onClick={handleZipDownload}
+        title={
+          downloadError
+            ? `Download blocked: ${downloadError} — right-click → "Save link as…"`
+            : "Download project ZIP (right-click → “Save link as…” if no download starts)"
+        }
         style={{
           width: 40,
           height: 40,
-          border: downloadFailed ? `1px solid ${genesisTheme.status.error}` : "1px solid transparent",
+          border: downloadError ? `1px solid ${genesisTheme.status.error}` : "1px solid transparent",
           borderRadius: genesisTheme.radius.md,
           background: downloading ? "rgba(34, 211, 238, 0.12)" : "transparent",
           color: "white",
@@ -315,11 +355,25 @@ export default function GenesisDock({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          textDecoration: "none",
           transition: "background 0.15s ease, border-color 0.15s ease",
         }}
       >
-        <span aria-hidden>{downloading ? "◌" : "⬇"}</span>
-      </button>
+        <span aria-hidden>{downloading ? "◌" : downloadDone ? "✓" : "⬇"}</span>
+      </a>
+      {downloadError ? (
+        <div
+          style={{
+            width: 128,
+            fontSize: 10,
+            lineHeight: 1.35,
+            textAlign: "center",
+            color: genesisTheme.status.error,
+          }}
+        >
+          {downloadError}
+        </div>
+      ) : null}
     </div>
   );
 }
