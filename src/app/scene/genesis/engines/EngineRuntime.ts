@@ -29,6 +29,9 @@ import type {
 import EngineBus
   from "./EngineBus";
 
+import GenesisStateMachine
+  from "../state/GenesisStateMachine";
+
 import type {
   GenesisSignals,
 } from "./GenesisSignals";
@@ -44,6 +47,10 @@ export default class EngineRuntime {
     EngineRegistry;  private readonly engineBus:
 
   EngineBus;
+
+  private readonly stateMachine =
+
+    new GenesisStateMachine();
 
   private lastState: GenesisState | undefined;
 
@@ -113,14 +120,19 @@ update(
     state,
     delta,
     signals,
-  );
+  );  this.engineBus.update(
 
-  this.engineBus.update(
     state,
     delta,
   );
 
+  // Keep the existing state machine synchronized with the canonical state
+  // after all simulation/evolution engines have contributed this frame.
+  // It remains a coordinator, not a second source of universe state.
+  this.stateMachine.sync(state);
+
 }
+
 
 getEngineBus(): EngineBus {
 

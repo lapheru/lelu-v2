@@ -35,11 +35,17 @@ import GenesisErrorBoundary
 import GenesisInterface
   from "./GenesisInterface";
 
+import { useGenesis } from "./GenesisCore";
+
 
 
 
 
 function GenesisCanvas() {
+  // Consume the provider directly so this component re-renders when the
+  // runtime finishes booting. That refreshes the R3F context bridge with the
+  // live EngineRuntime instead of leaving the canvas on its initial null value.
+  useGenesis();
   const ContextBridge = useContextBridge(GenesisContext);
 
   return (

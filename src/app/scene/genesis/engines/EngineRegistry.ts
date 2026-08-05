@@ -102,6 +102,8 @@ export default class EngineRegistry {
 
     new Map<string, GenesisEngine>();
 
+  private fallbackId = 0;
+
 
 
 
@@ -116,24 +118,23 @@ export default class EngineRegistry {
 
 
 
-    const id =
+    const baseId =
 
+      (engine.id ??
 
-      engine.id ??
+      engine.constructor.name) ||
 
-      engine.constructor.name;
+      "GenesisEngine";
 
+    let id = baseId;
 
+    // Constructor names are not stable after production minification. Keep
+    // unnamed engine instances distinct rather than silently dropping all
+    // but the first one with the same generated name.
+    while (this.engines.has(id)) {
 
-
-
-    if(
-
-      this.engines.has(id)
-
-    ){
-
-      return;
+      this.fallbackId += 1;
+      id = `${baseId}_${this.fallbackId}`;
 
     }
 
@@ -492,33 +493,23 @@ export default class EngineRegistry {
 
   getStatus():EngineStatus[] {
 
+    return Array.from(this.engines.entries())
 
+      .sort(([, left], [, right]) =>
+        (left.priority ?? 100) - (right.priority ?? 100),
+      )
 
-    return this.getAll()
+      .map(([id, engine]) => ({
 
-      .map(engine=>({
+        id,
 
+        enabled: engine.enabled !== false,
 
-
-        id:
-
-          engine.id ??
-
-
-          engine.constructor.name,
-
-
-
-        enabled:
-
-          engine.enabled !== false,        priority:
-
-          engine.priority ?? 100,
+        priority: engine.priority ?? 100,
 
         error: engine.error,
 
       }));
-
 
   }
 
