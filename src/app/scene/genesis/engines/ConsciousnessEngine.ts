@@ -79,7 +79,7 @@ export default class ConsciousnessEngine {
      */
 
     const reasoningBoost =
-      Boolean(signals?.reasoningActive) ? 2 : 1;
+      signals?.reasoningActive ? 2 : 1;
 
     state.intelligence = Math.min(
 
@@ -167,7 +167,7 @@ export default class ConsciousnessEngine {
 
       1,
 
-      Boolean(signals?.speaking)
+      signals?.speaking
         ? Math.max(state.consciousness, baseline) + delta * 0.08
         : baseline,
 

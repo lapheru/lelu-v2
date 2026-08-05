@@ -23,13 +23,15 @@ interface WorkspaceShape {
   description?: string;
 }
 
+const EMPTY_WORKSPACES: WorkspaceShape[] = [];
+
 interface GenesisWorkspacesPanelProps {
   onClose: () => void;
 }
 
 export default function GenesisWorkspacesPanel({ onClose }: GenesisWorkspacesPanelProps) {
   const { state, focusWorkspace, selectDestination } = useGenesis();
-  const workspaces = (state.cognition?.workspaces ?? []) as WorkspaceShape[];
+  const workspaces = (state.cognition?.workspaces as WorkspaceShape[] | undefined) ?? EMPTY_WORKSPACES;
 
   const rows = useMemo(
     () => workspaces.map((workspace, index) => ({ ...workspace, index })),

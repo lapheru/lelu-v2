@@ -33,6 +33,8 @@ interface Command {
   run: () => void;
 }
 
+const EMPTY_WORKSPACES: Array<{ id?: string; name?: string }> = [];
+
 export default function GenesisCommandPalette() {
   const { state, openPanel, focusWorkspace, selectDestination, clearConversation } = useGenesis();
   const [open, setOpen] = useState(false);
@@ -62,7 +64,7 @@ export default function GenesisCommandPalette() {
     }
   }, [open]);
 
-  const workspaces = (state.cognition?.workspaces ?? []) as Array<{ id?: string; name?: string }>;
+  const workspaces = (state.cognition?.workspaces as Array<{ id?: string; name?: string }> | undefined) ?? EMPTY_WORKSPACES;
 
   const commands = useMemo<Command[]>(() => {
     const base: Command[] = [

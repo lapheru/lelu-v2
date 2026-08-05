@@ -32,6 +32,9 @@ interface KnowledgeNodeShape {
   type?: string;
 }
 
+const EMPTY_AGENTS: AgentShape[] = [];
+const EMPTY_NODES: KnowledgeNodeShape[] = [];
+
 interface GenesisKnowledgePanelProps {
   onClose: () => void;
 }
@@ -39,8 +42,8 @@ interface GenesisKnowledgePanelProps {
 export default function GenesisKnowledgePanel({ onClose }: GenesisKnowledgePanelProps) {
   const { state } = useGenesis();
 
-  const agents = (state.cognition?.agents ?? []) as AgentShape[];
-  const nodes = (state.cognition?.nodes ?? []) as KnowledgeNodeShape[];
+  const agents = (state.cognition?.agents as AgentShape[] | undefined) ?? EMPTY_AGENTS;
+  const nodes = (state.cognition?.nodes as KnowledgeNodeShape[] | undefined) ?? EMPTY_NODES;
 
   const recentNodes = useMemo(() => nodes.slice(-30).reverse(), [nodes]);
 
