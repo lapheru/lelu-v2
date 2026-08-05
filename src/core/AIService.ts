@@ -251,27 +251,33 @@ export default class AIService {
         plan,
       });
 
-      // Fold this request's Reasoning/Planning output into the live
-      // cognitive state, so it's visible beyond the single response
-      // object (Genesis's Reasoning/Planning panel reads it from here).
-      this.runtime.brain.recordThinking(reasoning, plan);
+      const responseSucceeded =
+        response.provider !== "offline" &&
+        response.metadata?.success !== false;
 
-      await this.memory.learn(message, response.text);
-      await this.runtime.brain.getConversation().update(message);
+      if (responseSucceeded) {
+        // Fold this request's Reasoning/Planning output into the live
+        // cognitive state, so it's visible beyond the single response
+        // object (Genesis's Reasoning/Planning panel reads it from here).
+        this.runtime.brain.recordThinking(reasoning, plan);
 
-      const memories = await this.runtime.brain.recall(message);
-      for (const memory of memories) {
-        await this.user.learn(memory.category, memory.response);
+        await this.memory.learn(message, response.text);
+        await this.runtime.brain.getConversation().update(message);
+
+        const memories = await this.runtime.brain.recall(message);
+        for (const memory of memories) {
+          await this.user.learn(memory.category, memory.response);
+        }
+
+        const cognition = this.runtime.brain.cognitiveState();
+        this.emitCognition({
+          agents: cognition.agents,
+          workspaces: cognition.workspaces,
+          nodes: cognition.nodes,
+          reasoning: cognition.reasoning,
+          plan: cognition.plan,
+        });
       }
-
-      const cognition = this.runtime.brain.cognitiveState();
-      this.emitCognition({
-        agents: cognition.agents,
-        workspaces: cognition.workspaces,
-        nodes: cognition.nodes,
-        reasoning: cognition.reasoning,
-        plan: cognition.plan,
-      });
 
       return {
         ...response,
@@ -352,6 +358,10 @@ export default class AIService {
       ai: this.runtime.aiProviderList(),
       knowledge: this.runtime.knowledgeProviderList(),
     };
+  }
+
+  public async getProviderHealth() {
+    return await this.runtime.aiProviderHealthList();
   }
 
   /**

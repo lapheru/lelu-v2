@@ -32,6 +32,8 @@ import ResearchResolver
 import ProviderResolver
   from "./router/ProviderResolver";
 
+import type AIProvider from "../providers/AIProvider";
+
 import type {
   AIRequest,
   AIResponse,
@@ -342,6 +344,26 @@ export default class AIRuntime {
       requiresApiKey: provider.requiresApiKey,
       timeout: provider.timeout,
     }));
+  }
+
+  public async aiProviderHealthList(): Promise<{
+    name: string;
+    priority: number;
+    enabled: boolean;
+    requiresApiKey: boolean;
+    timeout: number;
+    health: Awaited<ReturnType<AIProvider["health"]>>;
+  }[]> {
+    return await Promise.all(
+      this.providers.all().map(async (provider) => ({
+        name: provider.name,
+        priority: provider.priority,
+        enabled: provider.enabled,
+        requiresApiKey: provider.requiresApiKey,
+        timeout: provider.timeout,
+        health: await provider.health(),
+      })),
+    );
   }
 
   public knowledgeProviderList(): {

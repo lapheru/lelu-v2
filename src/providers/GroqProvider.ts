@@ -67,7 +67,7 @@
 
 
 
-   private readonly model =
+   private model =
      "llama-3.3-70b-versatile";
 
 
@@ -99,6 +99,11 @@
          : undefined;
 
 
+
+     this.model =
+       import.meta.env.VITE_GROQ_MODEL?.trim() ||
+       runtimeEnv.__LELU_GROQ_MODEL__?.trim() ||
+       "llama-3.3-70b-versatile";
 
      this.apiKey =
 
@@ -348,6 +353,7 @@ ${request.context}`,
      const payload = {
 
        model:
+         request.model?.trim() ||
          this.model,
 
        messages,
@@ -355,6 +361,14 @@ ${request.context}`,
        temperature:
          request.temperature ??
          0.7,
+
+       ...(request.maxTokens
+         ? { max_tokens: request.maxTokens }
+         : {}),
+
+       ...(request.stop?.length
+         ? { stop: request.stop }
+         : {}),
 
      };
 
@@ -632,9 +646,15 @@ ${request.context}`,
          this.name,
 
        model:
-         this.model,
+         payload.model,
 
        processingTime,
+
+       metadata: {
+         usage: data?.usage,
+         finishReason:
+           data?.choices?.[0]?.finish_reason,
+       },
 
      };
 

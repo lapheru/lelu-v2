@@ -148,9 +148,15 @@ export default class GitHubModelsProvider implements AIProvider {
     ];
 
     const payload = {
-      model: this.model,
+      model: request.model?.trim() || this.model,
       messages,
       temperature: request.temperature ?? 0.7,
+      ...(request.maxTokens
+        ? { max_tokens: request.maxTokens }
+        : {}),
+      ...(request.stop?.length
+        ? { stop: request.stop }
+        : {}),
     };
 
     const proxyEndpoint =
@@ -269,9 +275,14 @@ export default class GitHubModelsProvider implements AIProvider {
     return {
       text: content.trim(),
       provider: this.name,
-      model: this.model,
+      model: payload.model,
       processingTime:
         Date.now() - started,
+      metadata: {
+        usage: data?.usage,
+        finishReason:
+          data?.choices?.[0]?.finish_reason,
+      },
     };
   }
 
