@@ -15,13 +15,13 @@ import {
   AdditiveBlending,
   BufferGeometry,
   Color,
-  DoubleSide,
   Float32BufferAttribute,
   Group,
   Line,
   LineBasicMaterial,
   Mesh,
   MeshBasicMaterial,
+  ShaderMaterial,
   Vector3,
 } from "three";
 
@@ -45,6 +45,65 @@ interface LightningSeed {
 const RING_COUNT = 12;
 const PARTICLE_COUNT = 128;
 const LIGHTNING_COUNT = 10;
+
+const NEBULA_SEEDS = [
+  { color: "#5964ff", position: [-2.15, 1.1, -3.2] as [number, number, number], rotation: 1 },
+  { color: "#27d7ff", position: [1.9, -0.9, -3.5] as [number, number, number], rotation: -0.35 },
+  { color: "#df72ff", position: [0.8, 1.65, -3.8] as [number, number, number], rotation: 0.55 },
+];
+
+const nebulaVertexShader = `
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+
+  void main() {
+    vPosition = position;
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const nebulaFragmentShader = `
+  uniform float uTime;
+  uniform float uActivity;
+  uniform float uPhase;
+  uniform vec3 uColor;
+
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+
+  float hash(vec3 p) {
+    return fract(sin(dot(p, vec3(17.13, 59.41, 13.17))) * 43758.5453);
+  }
+
+  float noise(vec3 p) {
+    vec3 cell = floor(p);
+    vec3 local = fract(p);
+    local = local * local * (3.0 - 2.0 * local);
+    float a = hash(cell);
+    float b = hash(cell + vec3(1.0, 0.0, 0.0));
+    float c = hash(cell + vec3(0.0, 1.0, 0.0));
+    float d = hash(cell + vec3(1.0, 1.0, 0.0));
+    float e = hash(cell + vec3(0.0, 0.0, 1.0));
+    float f = hash(cell + vec3(1.0, 0.0, 1.0));
+    float g = hash(cell + vec3(0.0, 1.0, 1.0));
+    float h = hash(cell + vec3(1.0, 1.0, 1.0));
+    float xy0 = mix(mix(a, b, local.x), mix(c, d, local.x), local.y);
+    float xy1 = mix(mix(e, f, local.x), mix(g, h, local.x), local.y);
+    return mix(xy0, xy1, local.z);
+  }
+
+  void main() {
+    vec3 viewDirection = normalize(cameraPosition - vPosition);
+    float rim = pow(1.0 - abs(dot(normalize(vNormal), viewDirection)), 1.8);
+    float cloud = noise(vPosition * 2.8 + vec3(uTime * 0.08, -uTime * 0.05, uPhase));
+    cloud += noise(vPosition * 6.0 - vec3(uTime * 0.12, uPhase, 0.0)) * 0.45;
+    cloud = smoothstep(0.32, 0.92, cloud);
+    float alpha = (cloud * 0.18 + rim * 0.22) * (0.45 + uActivity * 0.9);
+    vec3 color = uColor * (0.45 + cloud * 0.8 + rim * 0.35);
+    gl_FragColor = vec4(color, alpha);
+  }
+`;
 
 function clamp(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -128,11 +187,24 @@ export default function GenesisLegacyVisualMigration() {
 
   const lightningSeeds = useMemo(createLightning, []);
   const initialCosmic = universe.celestial.cosmicEnergy;
-  const nebulaSeeds = [
-    { color: "#5964ff", position: [-2.15, 1.1, -3.2] as [number, number, number], rotation: 1 },
-    { color: "#27d7ff", position: [1.9, -0.9, -3.5] as [number, number, number], rotation: -0.35 },
-    { color: "#df72ff", position: [0.8, 1.65, -3.8] as [number, number, number], rotation: 0.55 },
-  ];
+  const nebulaMaterials = useMemo(
+    () => NEBULA_SEEDS.map(({ color }, index) => new ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      depthTest: true,
+      blending: AdditiveBlending,
+      toneMapped: false,
+      uniforms: {
+        uTime: { value: 0 },
+        uActivity: { value: 0.35 },
+        uPhase: { value: index * 1.8 },
+        uColor: { value: new Color(color) },
+      },
+      vertexShader: nebulaVertexShader,
+      fragmentShader: nebulaFragmentShader,
+    })),
+    [],
+  );
 
   useFrame((_, delta) => {
     if (!field.current) return;
@@ -172,6 +244,11 @@ export default function GenesisLegacyVisualMigration() {
       nebula.current.rotation.z += delta * (0.012 + cosmic * 0.035);
       nebula.current.position.x = Math.sin(time.current * 0.08) * 0.28;
       nebula.current.position.y = Math.cos(time.current * 0.06) * 0.2;
+      nebulaMaterials.forEach((material, index) => {
+        material.uniforms.uTime.value = time.current;
+        material.uniforms.uActivity.value = activity;
+        material.uniforms.uPhase.value = index * 1.8 + cosmic * 0.7;
+      });
     }
     if (storms.current) {
       storms.current.rotation.y -= delta * (0.16 + storm * 0.8);
@@ -269,10 +346,10 @@ export default function GenesisLegacyVisualMigration() {
       </group>
 
       <group ref={nebula} name="NebulaField" position={[0, 0, -2.8]}>
-        {nebulaSeeds.map(({ color, position, rotation }, index) => (
+        {NEBULA_SEEDS.map(({ position, rotation }, index) => (
           <mesh key={`nebula-${index}`} position={position} rotation={[0, 0, rotation]} scale={1 + initialCosmic * 0.2} userData={{ baseOpacity: 0.12 }}>
-            <planeGeometry args={[4.2, 2.1]} />
-            <meshBasicMaterial color={color} transparent opacity={0.12} blending={AdditiveBlending} depthWrite={false} toneMapped={false} side={DoubleSide} />
+            <sphereGeometry args={[1.25, 48, 32]} />
+            <primitive object={nebulaMaterials[index]} attach="material" />
           </mesh>
         ))}
       </group>
@@ -304,8 +381,8 @@ export default function GenesisLegacyVisualMigration() {
           const angle = index * Math.PI / 8;
           return (
             <mesh key={`glyph-${index}`} position={[Math.cos(angle) * 2.46, Math.sin(index * 2.1) * 0.14, Math.sin(angle) * 2.46]} rotation={[0, -angle, Math.PI / 4]} userData={{ baseOpacity: 0.42 }}>
-              <planeGeometry args={[0.1, 0.1]} />
-              <meshBasicMaterial color={index % 2 === 0 ? "#f5fbff" : "#d5a7ff"} transparent opacity={0.42} blending={AdditiveBlending} depthWrite={false} toneMapped={false} side={DoubleSide} />
+              <octahedronGeometry args={[0.075, 1]} />
+              <meshBasicMaterial color={index % 2 === 0 ? "#f5fbff" : "#d5a7ff"} transparent opacity={0.42} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
             </mesh>
           );
         })}
