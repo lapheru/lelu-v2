@@ -24,6 +24,15 @@ import { useFrame } from "@react-three/fiber";
 
 import type { OceanState } from "../Ocean";
 
+import Whitecaps from "./surface/Whitecaps";
+import CrestFoam from "./surface/CrestFoam";
+import ShoreFoam from "./surface/ShoreFoam";
+import BubbleSpray from "./particles/BubbleSpray";
+import FoamClusters from "./particles/FoamClusters";
+import Mist from "./particles/Mist";
+import FoamDrift from "./flow/FoamDrift";
+import FoamTrails from "./flow/FoamTrails";
+
 
 interface Props {
   oceanState?: OceanState;
@@ -73,6 +82,15 @@ export default function Foam({
   return (
 
     <group ref={root}>
+
+      <Whitecaps oceanState={oceanState} />
+      <CrestFoam oceanState={oceanState} />
+      <ShoreFoam oceanState={oceanState} />
+      <BubbleSpray oceanState={oceanState} />
+      <FoamClusters oceanState={oceanState} />
+      <Mist oceanState={oceanState} />
+      <FoamDrift oceanState={oceanState} />
+      <FoamTrails oceanState={oceanState} />
 
     </group>
 

@@ -45,6 +45,12 @@ import {
 
 } from "./lighting/LightingIndex";
 
+import Caustics
+  from "./caustics/Caustics";
+
+import Foam
+  from "./foam/Foam";
+
 
 
 
@@ -309,7 +315,13 @@ export default function Ocean(){
 
       />
 
+      <Caustics
+        oceanState={universe.ocean}
+      />
 
+      <Foam
+        oceanState={universe.ocean}
+      />
 
     </group>
 

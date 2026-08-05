@@ -18,7 +18,6 @@ import {
 import {
   Group,
   Mesh,
-  DoubleSide,
 } from "three";
 
 import type {
@@ -181,18 +180,14 @@ export default function DepthFade({
             0,
           ]}
 
-          rotation={[
-            -Math.PI / 2,
-            0,
-            0,
-          ]}
 
         >
 
-          <circleGeometry
+          <sphereGeometry
             args={[
               1,
-              64,
+              32,
+              20,
             ]}
           />
 
@@ -207,7 +202,7 @@ export default function DepthFade({
             }
 
             side={
-              DoubleSide
+              0
             }
 
             depthWrite={false}

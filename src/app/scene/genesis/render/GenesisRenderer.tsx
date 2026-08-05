@@ -75,6 +75,9 @@ import HaloShell
 import LifeEvolutionVisualizer
   from "./LifeEvolutionVisualizer";
 
+import CoreMemoryVeins
+  from "./CoreMemoryVeins";
+
 
 import CoreMutationVisualizer
   from "./CoreMutationVisualizer";
@@ -300,12 +303,7 @@ const weights =
 
         <LifeEvolutionVisualizer />
 
-
-
-        {/* Deliberately omit the former orbital torus lattice. Those
-            concentric rings were the unwanted circular artifacts around
-            the core, not a required memory surface. Memory remains live
-            in the Memory panel and universe state. */}
+        <CoreMemoryVeins />
 
 
 
