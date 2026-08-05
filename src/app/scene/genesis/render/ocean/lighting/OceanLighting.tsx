@@ -26,33 +26,6 @@ import HemisphereGlow
 import HorizonLight
   from "./ambient/HorizonLight";
 
-import SunReflection
-  from "./sunlight/SunReflection";
-
-import SurfaceHighlights
-  from "./sunlight/SurfaceHighlights";
-
-import GodRays
-  from "./sunlight/GodRays";
-
-import UnderwaterLight
-  from "./underwater/UnderwaterLight";
-
-import DepthFade
-  from "./underwater/DepthFade";
-
-import WaterVolume
-  from "./underwater/WaterVolume";
-
-import Bioluminescence
-  from "./energy/Bioluminescence";
-
-import EnergyBloom
-  from "./energy/EnergyBloom";
-
-import OceanPulse
-  from "./energy/OceanPulse";
-
 import type {
   OceanState,
 } from "../Ocean";
@@ -110,42 +83,6 @@ export default function OceanLighting({
       />
 
       <HorizonLight
-        oceanState={oceanState}
-      />
-
-      <SunReflection
-        oceanState={oceanState}
-      />
-
-      <SurfaceHighlights
-        oceanState={oceanState}
-      />
-
-      <GodRays
-        oceanState={oceanState}
-      />
-
-      <UnderwaterLight
-        oceanState={oceanState}
-      />
-
-      <DepthFade
-        oceanState={oceanState}
-      />
-
-      <WaterVolume
-        oceanState={oceanState}
-      />
-
-      <Bioluminescence
-        oceanState={oceanState}
-      />
-
-      <EnergyBloom
-        oceanState={oceanState}
-      />
-
-      <OceanPulse
         oceanState={oceanState}
       />
 
