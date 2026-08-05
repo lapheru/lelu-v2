@@ -16,6 +16,8 @@ import StarField from "../environment/stars/StarField";
 import CoreLayer from "./CoreLayer";
 import Ocean from "./ocean/Ocean";
 import HaloShell from "../materials/HaloShell";
+import CrystalShell from "../materials/CrystalShell";
+import ElectricShell from "../materials/ElectricShell";
 import LifeEvolutionVisualizer from "./LifeEvolutionVisualizer";
 import CoreMemoryVeins from "./CoreMemoryVeins";
 import CoreMutationVisualizer from "./CoreMutationVisualizer";
@@ -94,9 +96,10 @@ export default function GenesisRenderer() {
       <group name="BlueGenesisCore">
         <CoreLayer>
           <GenesisCore />
-          {/* The CrystalShell and ElectricShell Fresnel shells were the two
-              unwanted circular disc artifacts; the intended halo, plasma,
-              atmosphere, ocean, life, and memory layers remain active. */}
+          {/* Existing evolution layers: each shell reads its live EngineBus
+              channel and feeds its own material uniforms every frame. */}
+          <CrystalShell />
+          <ElectricShell />
           <HaloShell />
           <CoreMutationVisualizer />
         </CoreLayer>
