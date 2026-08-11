@@ -106,7 +106,7 @@ ${result.url ?? ""}`,
     return {
 
       text:
-        "Lélu could not generate a response.",
+        "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
 
       provider:
         "offline",
@@ -118,6 +118,25 @@ ${result.url ?? ""}`,
 
         Date.now() -
         started,
+
+      metadata: {
+
+        success:
+          false,
+
+        reason:
+          "all-ai-providers-failed",
+
+        offline:
+          true,
+
+        identity:
+          true,
+
+        memory:
+          true,
+
+      },
 
     };
 

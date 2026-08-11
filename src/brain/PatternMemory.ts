@@ -423,7 +423,26 @@ export default class PatternMemory {
 
 
 
-    return this.getAll()
+    // Deterministic records (e.g. the LÉLU foundational identity,
+    // flagged context.searchable === false) answer through explicit
+    // intent handling, not fuzzy keyword search — excluding them here
+    // keeps a shared word from hijacking unrelated queries or blocking
+    // real user-memory consolidation.
+    const searchable =
+
+      this.getAll()
+
+        .filter(
+
+          pattern =>
+
+            pattern.context?.searchable !== false,
+
+        );
+
+
+
+    return searchable
 
       .map(
 

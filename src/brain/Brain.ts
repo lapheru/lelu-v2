@@ -31,6 +31,10 @@ import ConversationEngine
 import CognitionRuntime
   from "./CognitionRuntime";
 
+import {
+  seedLeluIdentity,
+} from "./LeluIdentity";
+
 import CognitiveCore
   from "../core/cognition/CognitiveCore";
 
@@ -200,7 +204,28 @@ export default class Brain {
     Promise<void> {
 
 
-    await this.memory.initialize();
+    // Memory init must never take the runtime down with it: if
+    // IndexedDB is unavailable (private mode, storage blocked),
+    // the Brain still boots and providers still work — memory
+    // operations inside a chat are individually guarded by the
+    // caller's error handling.
+    try {
+
+      await this.memory.initialize();
+
+      // LÉLU's foundational identity is a persistent local memory
+      // record, seeded once and retrievable offline through the
+      // normal recall path. It must never depend on an AI API.
+      await seedLeluIdentity(this.memory);
+
+    } catch (error) {
+
+      console.error(
+        "[Brain] Memory initialization failed; continuing without persistent memory.",
+        error,
+      );
+
+    }
 
 
 

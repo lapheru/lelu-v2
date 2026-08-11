@@ -16,7 +16,7 @@
  * ==========================================================
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useGenesis } from "./GenesisCore";
 import GenesisDock from "./GenesisDock";
@@ -38,13 +38,42 @@ export default function GenesisInterface() {
   const {
     state,
     universe,
+    engineRuntime,
     openPanel,
     focusWorkspace,
     selectDestination,
     addMessage,
     setThinking,
     notify,
+    minimize,
+    expand,
   } = useGenesis();
+
+  /*
+   * Live ONE-Core telemetry. Reads the single authoritative CoreVisualState
+   * (the same object the surface material, emission, atmosphere and motes
+   * consume every frame) on a light timer and prints the current engine
+   * weights + color. This proves on screen that exactly one Genesis Core
+   * exists and that it is morphing through its states in real time.
+   */
+  const [coreTelemetry, setCoreTelemetry] = useState<string>("core booting…");
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const vs = engineRuntime?.getEngineBus().getVisualState();
+      if (!vs) {
+        setCoreTelemetry("core offline");
+        return;
+      }
+      const weights = vs.stateWeights;
+      setCoreTelemetry(
+        `CORE 1 · t=${Math.round(vs.time)}s · #${vs.stateColor.getHexString()} · ` +
+          `O${weights.ocean.toFixed(2)} P${weights.plasma.toFixed(2)} E${weights.electric.toFixed(2)} ` +
+          `C${weights.crystal.toFixed(2)} H${weights.halo.toFixed(2)} B${weights.bio.toFixed(2)}`,
+      );
+    }, 500);
+    return () => window.clearInterval(id);
+  }, [engineRuntime]);
 
   const workspaces = useMemo(() => state.cognition?.workspaces ?? [], [state.cognition?.workspaces]);
   const evolutionStage = Math.max(0, Math.min(1, universe.evolutionSystem.stage));
@@ -105,24 +134,86 @@ export default function GenesisInterface() {
           pointerEvents: "none",
         }}
       >
-        <div
-          style={{
-            pointerEvents: "auto",
-            background: `rgba(8, 16, 38, ${0.72 + interfaceActivity * 0.12})`,
-            border: `1px solid ${evolutionColor}${Math.round((0.24 + interfaceActivity * 0.32) * 255).toString(16).padStart(2, "0")}`,
-            borderRadius: genesisTheme.radius.md,
-            padding: "10px 14px",
-            color: "white",
-            backdropFilter: genesisTheme.glass.blurSoft,
-            maxWidth: 280,
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: workspaces.length ? 8 : 0 }}>
-            <strong>Genesis</strong>
-            <span style={{ opacity: 0.75, fontSize: 12 }}>
-              {state.runtimeReady ? `Live · ${Math.round(pulse * 100)}% pulse` : "Booting"}
-            </span>
-          </div>
+        {state.minimized ? (
+          <button
+            type="button"
+            onClick={expand}
+            title="Expand Genesis"
+            aria-label="Expand Genesis"
+            style={{
+              pointerEvents: "auto",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: `rgba(8, 16, 38, ${0.72 + interfaceActivity * 0.12})`,
+              border: `1px solid ${evolutionColor}${Math.round((0.24 + interfaceActivity * 0.32) * 255).toString(16).padStart(2, "0")}`,
+              borderRadius: genesisTheme.radius.pill,
+              padding: "8px 14px",
+              color: "white",
+              backdropFilter: genesisTheme.glass.blurSoft,
+              cursor: "pointer",
+              boxShadow: genesisTheme.elevation.chrome.boxShadow,
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 999,
+                background: evolutionColor,
+                boxShadow: `0 0 ${6 + pulse * 8}px ${evolutionColor}`,
+                transform: `scale(${0.8 + pulse * 0.45})`,
+              }}
+            />
+            <strong style={{ fontSize: 12 }}>Genesis</strong>
+            <span style={{ opacity: 0.6, fontSize: 11 }}>＋</span>
+          </button>
+        ) : (
+          <div
+            style={{
+              pointerEvents: "auto",
+              background: `rgba(8, 16, 38, ${0.72 + interfaceActivity * 0.12})`,
+              border: `1px solid ${evolutionColor}${Math.round((0.24 + interfaceActivity * 0.32) * 255).toString(16).padStart(2, "0")}`,
+              borderRadius: genesisTheme.radius.md,
+              padding: "10px 14px",
+              color: "white",
+              backdropFilter: genesisTheme.glass.blurSoft,
+              maxWidth: 280,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: workspaces.length ? 8 : 0 }}>
+              <strong>Genesis</strong>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <span style={{ opacity: 0.75, fontSize: 12 }}>
+                  {state.runtimeReady ? `Live · ${Math.round(pulse * 100)}% pulse` : "Booting"}
+                </span>
+                <button
+                  type="button"
+                  onClick={minimize}
+                  title="Minimize Genesis"
+                  aria-label="Minimize Genesis"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.16)",
+                    borderRadius: 999,
+                    background: "rgba(255,255,255,0.08)",
+                    color: "white",
+                    width: 22,
+                    height: 22,
+                    padding: 0,
+                    fontSize: 13,
+                    lineHeight: 1,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  –
+                </button>
+              </span>
+            </div>
 
           {workspaces.length > 0 ? (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
@@ -165,7 +256,19 @@ export default function GenesisInterface() {
             />
             <span>Evolution {Math.round(evolutionStage * 100)}% · cycle {Math.floor(universe.age)}</span>
           </div>
-        </div>
+          <div
+            style={{
+              marginTop: 6,
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+              fontSize: 10,
+              opacity: 0.62,
+              letterSpacing: "0.02em",
+            }}
+          >
+            {coreTelemetry}
+          </div>
+          </div>
+        )}
 
         <div style={{ pointerEvents: "auto" }}>
           <GenesisCommandPalette />

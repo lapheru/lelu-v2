@@ -27,6 +27,7 @@ import {
 } from "@react-three/fiber";
 
 import {
+  PerspectiveCamera,
   Vector3,
 } from "three";
 
@@ -40,9 +41,30 @@ interface GenesisCameraControllerProps {
 export default function GenesisCameraController({
   navigator,
 }: GenesisCameraControllerProps) {
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const controlsRef = useRef<any>(null);
   const followTarget = useRef(new Vector3(0, 0, 0));
+
+  /*
+   * Responsive framing: on narrow/portrait viewports the same composition
+   * (core, shells, world-nodes) needs a wider field of view to stay inside
+   * the frame; wide screens get a tighter, more cinematic angle.
+   *
+   * Zoom range: minDistance 4 keeps the close Core view; maxDistance 78
+   * restores the very-wide cosmic view that fits the full star shell,
+   * aurora ring, and all three workspace worlds together (the backdrop
+   * sky sphere is radius 85, so 78 stays inside it).
+   */
+  useEffect(() => {
+    const aspect = size.width / Math.max(1, size.height);
+    const clamped = Math.min(1.8, Math.max(0.4, aspect));
+    const fov = Math.round(56.5 - 8.5 * (clamped - 0.4) / 1.4);
+    const perspective = camera as PerspectiveCamera;
+    if (perspective.isPerspectiveCamera) {
+      perspective.fov = fov;
+      perspective.updateProjectionMatrix();
+    }
+  }, [camera, size]);
 
   useEffect(() => {
     const unsubscribe = navigator.subscribe((state) => {
@@ -80,7 +102,7 @@ export default function GenesisCameraController({
       dampingFactor={0.08}
       enablePan={false}
       minDistance={4}
-      maxDistance={18}
+      maxDistance={78}
       maxPolarAngle={Math.PI / 2.1}
       target={[0, 0, 0]}
     />

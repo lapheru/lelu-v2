@@ -1,554 +1,113 @@
 /**
  * ==========================================================
  * LÉLUVERSE
- * GENESIS CORE
+ * GENESIS CORE — THE ONE CORE BODY
  *
- * Primary Blue Genesis Core mesh.
+ * The single surface of the ONE Genesis Core — and its only transform
+ * controller. This mesh owns no state and no derivation: every frame it
+ * reads the ONE visual state computed by the EngineBus (CoreVisualState)
+ * and writes it straight into the surface material's uniforms. The same
+ * state drives the emission, the atmosphere light, the life motes and
+ * the cosmic field, so the Core can never wear two states at once.
  *
- * Drives:
- * - plasma activity
- * - evolution flow
- * - awareness response
- * - mutation intensity
- * - breathing motion
+ * Drives (from the shared state):
+ * - engine-state morphing (ocean/plasma/electric/crystal/halo/bio)
+ * - color + glow
+ * - evolution / awareness / mutation / growth / formChange
+ * - ocean surface feeds
+ * - breathing + rotation (the ONE transform — the old CoreLayer
+ *   "LivingCoreController" that rotated/breathed the same core from a
+ *   second formula has been removed; this body is the only controller)
  *
+ * Children (the internal life-mote layer) are nested inside this same
+ * mesh so every internal layer shares the one origin and one transform.
  * ==========================================================
  */
 
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef, type ReactNode } from "react";
+import { Mesh } from "three";
 
-import {
-  useFrame,
-} from "@react-three/fiber";
+import { useGenesis } from "../GenesisCore";
+import GenesisCoreMaterial from "./GenesisCoreMaterial";
 
+interface GenesisCoreProps {
+  children?: ReactNode;
+}
 
-import {
-  useMemo,
-  useRef,
-} from "react";
+export default function GenesisCore({ children }: GenesisCoreProps) {
+  const { engineRuntime, openPanel } = useGenesis();
 
+  const mesh = useRef<Mesh>(null);
 
-import {
-  Mesh,
-} from "three";
+  const material = useMemo(() => new GenesisCoreMaterial(), []);
 
-
-import {
-  useGenesis,
-} from "../GenesisCore";
-
-
-import GenesisCoreMaterial
-  from "./GenesisCoreMaterial";
-
-
-
-
-
-export default function GenesisCore(){
-
-
-  const {
-
-    getLiveUniverse,
-
-    openPanel,
-
-  } = useGenesis();
-
-
-
-
-
-  const mesh =
-
-    useRef<Mesh>(null);
-
-
-
-
-
-  const material =
-
-    useMemo(
-
-      () =>
-
-        new GenesisCoreMaterial(),
-
-      [],
-
-    );
-
-
-
-
-
-
-
-  useFrame((_, delta)=> { 
-
-
-    if(!mesh.current)
-
+  useFrame((_, delta) => {
+    if (!mesh.current) {
       return;
+    }
 
-
-
-
-
-    const uniforms =
-
-      material.uniforms;
-
-
-
-
-
-    if(!uniforms)
-
+    const visualState = engineRuntime?.getEngineBus().getVisualState();
+    if (!visualState) {
       return;
-
-
-
-
-
-
-
-    /*
-     * Plasma clock
-     */
-
-
-    if(uniforms.uTime){
-
-      uniforms.uTime.value += delta;
-
     }
 
-
-
-
-
-
-
-    /*
-     * Existing Genesis signals
-     */
-
-
-    const liveUniverse = getLiveUniverse();
-
-    const energy =
-
-      liveUniverse.energy ?? 0;
-
-
-
-    const awareness =
-
-      liveUniverse.awareness ?? 0;
-
-
-
-    const consciousness =
-
-      liveUniverse.consciousness ?? 0;    const evolutionState =
-      liveUniverse.evolutionSystem;
-
-    const mutation =
-
-      evolutionState?.mutation ?? 0;
-
-    const colorShift =
-
-      evolutionState?.colorShift ?? 0;
-
-    const formChange =
-
-      evolutionState?.formChange ?? 0;
-
-    const plasma =
-
-      evolutionState?.plasma ?? 0.2;
-
-    const instability =
-
-      evolutionState?.instability ?? 0;
-
-    const growth =
-
-      evolutionState?.growth ?? 0;
-
-
-
-
-
-
-
-    /*
-     * Permanent living heartbeat.
-     *
-     * Core is alive before the universe
-     * reaches higher states.
-     */
-
-
-    const pulse =
-
-
-      0.35 +
-
-      (
-
-        Math.sin(
-
-          uniforms.uTime.value *
-
-          2.5
-
-        )
-
-        +
-
-        1
-
-      )
-
-      *
-
-      0.15;
-
-
-
-
-
-
-
-    const activity =
-
-
-      Math.min(
-
-        1,
-
-
-        pulse +
-
-        (liveUniverse.pulse?.intensity ?? 0) *
-
-        0.12 +
-
-        energy *
-
-        0.35 +
-
-        awareness *
-
-        0.25 +
-
-        consciousness *
-
-        0.25 +
-
-        mutation *
-
-        0.35
-
-
-      );
-
-
-
-
-
-
-
-    /*
-     * Shader feeds
-     */
-
-
-    if(uniforms.uActivity){
-
-
-      uniforms.uActivity.value =
-
-        activity;
-
-
-    }
-
-
-
-    if(uniforms.uEvolution){
-
-
-      uniforms.uEvolution.value =
-
-        Math.min(
-
-          1,
-
-          evolutionState.stage * 0.7 +
-
-          formChange * 0.3 +
-
-          pulse * 0.2
-
-        );
-
-
-    }
-
-
-
-    if(uniforms.uAwareness){
-
-
-      uniforms.uAwareness.value =
-
-        awareness +
-
-        pulse *
-
-        0.1;
-
-
-    }
-
-
-
-    if(uniforms.uMutation){
-
-
-      uniforms.uMutation.value =
-
-        mutation +
-
-        pulse *
-
-        0.15;
-
-
-    }
-
-if (uniforms.uGrowth) {
-  uniforms.uGrowth.value =
-    Math.min(
-      1,
-      growth * 0.7 +
-      formChange * 0.2 +
-      activity * 0.1
-    );
-  }
-
-if (uniforms.uFormChange) {
-  uniforms.uFormChange.value = formChange;
-}
-
-if (uniforms.uInstability) {
-  uniforms.uInstability.value = instability;
-}
-
-   /*
- * Ocean driven uniforms
- */
-
-const ocean = liveUniverse.ocean;
-
-const tide = ocean.tide;
-const current = ocean.current;
-const wave = ocean.wave;
-const stability = ocean.stability;
-const tsunami = ocean.tsunami;
-
-if (uniforms.uPlasma) {
-  uniforms.uPlasma.value =
-    Math.max(
-      0.2,
-      plasma * 0.78 +
-      stability * 0.22,
-    );
-}
-
-if (uniforms.uOceanBlend) {
-  uniforms.uOceanBlend.value =
-    tide;
-}
-
-if (uniforms.uOceanFlow) {
-  uniforms.uOceanFlow.value =
-    current;
-}
-
-if (uniforms.uOceanDepth) {
-  uniforms.uOceanDepth.value =
-    wave;
-}
-
-if (uniforms.uOceanFoam) {
-  uniforms.uOceanFoam.value =
-    Math.max(
-      wave,
-      tsunami * 0.5,
-    );
-}
-
-if (uniforms.uOceanCurrent) {
-  uniforms.uOceanCurrent.value =
-    current;
-}
-
-if (uniforms.uColorShift) {  uniforms.uColorShift.value =
-
-    Math.min(
-      1,
-      colorShift * 0.78 +
-      mutation * 0.12 +
-      tide * 0.05 +
-      (0.5 + 0.5 * Math.sin(liveUniverse.age * 0.12)) * 0.10,
-    );
-}
-
-
-
-
-
-
-
-
-    /*
-     * Organic rotation
-     */
-
-
-    mesh.current.rotation.y +=
-
-
-      delta *
-
-      (
-
-        0.12 +
-
-        activity *
-
-        0.25
-
-      );
-
-
-
-
-
-    mesh.current.rotation.x +=
-
-
-      delta *
-
-      (
-
-        0.03 +
-
-        activity *
-
-        0.08
-
-      );
-
-
-
-
-
-
-
-    /*
-     * Plasma breathing
-     */
-
-
+    const uniforms = material.uniforms;
+
+    // ---- ONE authoritative state → surface uniforms ----
+    uniforms.uTime.value = visualState.time;
+    uniforms.uActivity.value = visualState.activity;
+    uniforms.uEvolution.value = visualState.evolutionFeed;
+    uniforms.uAwareness.value = visualState.awarenessFeed;
+    uniforms.uMutation.value = visualState.mutationFeed;
+    uniforms.uGrowth.value = visualState.growthFeed;
+    uniforms.uFormChange.value = visualState.formChange;
+    uniforms.uInstability.value = visualState.instability;
+    uniforms.uPlasma.value = visualState.plasmaFeed;
+    uniforms.uOceanBlend.value = visualState.oceanFeed.blend;
+    uniforms.uOceanFlow.value = visualState.oceanFeed.flow;
+    uniforms.uOceanDepth.value = visualState.oceanFeed.depth;
+    uniforms.uOceanFoam.value = visualState.oceanFeed.foam;
+    uniforms.uOceanCurrent.value = visualState.oceanFeed.current;
+    uniforms.uColorShift.value = visualState.colorShift;
+    uniforms.uStateOcean.value = visualState.stateWeights.ocean;
+    uniforms.uStatePlasma.value = visualState.stateWeights.plasma;
+    uniforms.uStateElectric.value = visualState.stateWeights.electric;
+    uniforms.uStateCrystal.value = visualState.stateWeights.crystal;
+    uniforms.uStateHalo.value = visualState.stateWeights.halo;
+    uniforms.uStateBio.value = visualState.stateWeights.bio;
+    uniforms.uCoreColor.value.copy(visualState.stateColor);
+    uniforms.uGlowColor.value.copy(visualState.stateGlow);
+
+    // ---- ONE transform on the ONE Core ----
+    mesh.current.rotation.y += delta * (0.12 + visualState.activity * 0.25);
+    mesh.current.rotation.x += delta * (0.03 + visualState.activity * 0.08);
+
+    // Plasma breathing — the same pulse every other layer breathes with.
     const breathing =
-
-
       1 +
-
-      Math.sin(
-
-        uniforms.uTime.value *
-
-        1.4
-
-      )
-
-      *
-
-      0.04 +
-
-      activity *
-
-      0.12;
-
-
-
-
-
-    mesh.current.scale.setScalar(
-
-      breathing
-
-    );
-
+      Math.sin(visualState.time * 1.4) * 0.04 +
+      visualState.activity * 0.12;
+    mesh.current.scale.setScalar(breathing);
   });
 
-  
-return (
-
+  return (
     <mesh
-
-
-
-
       ref={mesh}
-
       name="GenesisCoreBody"
-
       renderOrder={201}
-
       material={material}
-
       onClick={() => openPanel("chat")}
-
       onPointerOver={(event) => {
-
         event.stopPropagation();
-
         document.body.style.cursor = "pointer";
-
       }}
-
       onPointerOut={() => {
-
         document.body.style.cursor = "default";
-
       }}
-
     >
-
-
-      <icosahedronGeometry
-
-        args={[
-
-          0.9,
-
-          128,
-
-        ]}
-
-      />
-
-
+      <icosahedronGeometry args={[0.9, 64]} />
+      {children}
     </mesh>
-    );
-
-  }
+  );
+}

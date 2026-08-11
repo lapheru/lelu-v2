@@ -145,3 +145,41 @@ code {
     box-shadow: 0 0 10px currentColor;
   }
 }
+
+/*
+ * Floating-window scrollbars. The glass panels (GenesisWindowFrame)
+ * and panel-local scroll bodies (class .genesis-scroll) scroll
+ * internally over a full-screen canvas app whose html/body/#root are
+ * overflow:hidden, so the default fat light-mode scrollbar is both
+ * ugly and easy to miss. Give them a thin, translucent thumb that
+ * reads on dark glass and a contain overscroll so the wheel never
+ * silently falls through to the frozen page behind.
+ */
+.genesis-window-frame,
+.genesis-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) rgba(255, 255, 255, 0.06);
+}
+
+.genesis-window-frame::-webkit-scrollbar,
+.genesis-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.genesis-window-frame::-webkit-scrollbar-track,
+.genesis-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+}
+
+.genesis-window-frame::-webkit-scrollbar-thumb,
+.genesis-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
+}
+
+.genesis-window-frame::-webkit-scrollbar-thumb:hover,
+.genesis-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}

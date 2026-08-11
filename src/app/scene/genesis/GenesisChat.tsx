@@ -213,14 +213,22 @@ export default function GenesisChat({ messages = [], addMessage: addMessageProp,
       } else {
         const response = await ai.chat(message);
         assistantText = response.text;
-        provider = response.model ?? "github-models";
+        // Surface the real routing result: a provider name (Groq /
+        // OpenRouter / GitHub Models), "brain" for a memory-resolved
+        // answer, or "offline" for the local fallback. Offline and
+        // memory answers are valid messages, not errors — the UI must
+        // keep working when every provider is down.
+        provider = response.provider ?? response.model ?? "github-models";
         confidence = (response as { metadata?: { confidence?: number } }).metadata?.confidence;
         reasoning = (response as { metadata?: { reasoning?: unknown } }).metadata?.reasoning;
         plan = (response as { metadata?: { plan?: unknown } }).metadata?.plan;
       }
 
-      if (!assistantText || assistantText === "Lélu could not generate a response.") {
-        throw new Error("The assistant returned an empty or failed response.");
+      // Only a truly empty response is an error. Offline-mode answers
+      // carry real text (identity, memory or the offline notice) and
+      // must render as normal messages.
+      if (!assistantText) {
+        throw new Error("The assistant returned an empty response.");
       }
 
       setStatus("ready");

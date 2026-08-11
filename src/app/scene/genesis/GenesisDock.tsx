@@ -37,7 +37,7 @@ export const DOCK_ITEMS: DockItem[] = [
   { id: "reasoning", label: "Reasoning", glyph: "✦", group: "intelligence" },
   { id: "agents", label: "Knowledge", glyph: "◈", group: "intelligence" },
   { id: "memory", label: "Memory", glyph: "◐", group: "intelligence" },
-  { id: "providers", label: "Providers", glyph: "⇄", group: "system" },
+  { id: "providers", label: "API Status", glyph: "⌁", group: "system" },
   { id: "diagnostics", label: "Engines", glyph: "●", group: "system" },
   { id: "logs", label: "Logs", glyph: "▤", group: "system" },
 ];

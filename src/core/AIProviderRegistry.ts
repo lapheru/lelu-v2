@@ -19,6 +19,19 @@ export default class AIProviderRegistry {
   private readonly providers = new Map<string, AIProvider>();
   private readonly failures = new Map<string, ProviderFailure>();
 
+  /**
+   * The provider that last SUCCEEDED through the runtime — the
+   * registry is the single source of truth for "which provider is
+   * LÉLU actively using", and the API Status UI reads it from here.
+   */
+  private activeProvider: string | null = null;
+
+  /** Timestamp of the last successful generation per provider. */
+  private readonly lastSuccess = new Map<string, number>();
+
+  /** Usage metadata (tokens/credits) reported by the last successful response. */
+  private readonly lastUsage = new Map<string, unknown>();
+
   public register(provider: AIProvider): void {
     if (this.providers.has(provider.name)) {
       console.warn(
@@ -142,8 +155,67 @@ export default class AIProviderRegistry {
     });
   }
 
-  public markSuccess(name: string): void {
+  public markSuccess(name: string, usage?: unknown): void {
     this.failures.delete(name);
+    this.activeProvider = name;
+    this.lastSuccess.set(name, Date.now());
+    if (usage !== undefined) {
+      this.lastUsage.set(name, usage);
+    }
+  }
+
+  /** Name of the provider that last succeeded — the active one. */
+  public getActiveProvider(): string | null {
+    return this.activeProvider;
+  }
+
+  /** Timestamp of the provider's last successful generation. */
+  public lastSuccessOf(name: string): number | undefined {
+    return this.lastSuccess.get(name);
+  }
+
+  /** Usage metadata from the provider's last successful generation. */
+  public lastUsageOf(name: string): unknown {
+    return this.lastUsage.get(name);
+  }
+
+  /** Whether the provider is currently inside its failure cooldown. */
+  public isInCooldown(name: string): boolean {
+    const failure = this.failures.get(name);
+    if (!failure) {
+      return false;
+    }
+    return Date.now() - failure.lastFailure < FAILURE_COOLDOWN_MS;
+  }
+
+  /** Read-only snapshot of every registered provider's runtime state. */
+  public statusSnapshot(): {
+    name: string;
+    priority: number;
+    enabled: boolean;
+    requiresApiKey: boolean;
+    timeout: number;
+    lastSuccess: number | undefined;
+    lastUsage: unknown;
+    failure: ProviderFailure | null;
+    inCooldown: boolean;
+  }[] {
+    return this.all().map((provider) => {
+      const failure = this.failures.get(provider.name) ?? null;
+      return {
+        name: provider.name,
+        priority: provider.priority,
+        enabled: provider.enabled,
+        requiresApiKey: provider.requiresApiKey,
+        timeout: provider.timeout,
+        lastSuccess: this.lastSuccess.get(provider.name),
+        lastUsage: this.lastUsage.get(provider.name),
+        failure,
+        inCooldown: failure
+          ? Date.now() - failure.lastFailure < FAILURE_COOLDOWN_MS
+          : false,
+      };
+    });
   }
 
   public failure(name: string): ProviderFailure | undefined {

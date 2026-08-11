@@ -16,6 +16,10 @@ import type {
   BrainResult,
 } from "./RouterResults";
 
+import {
+  isIdentityOrProfileQuestion,
+} from "../../brain/LeluIdentity";
+
 
 export default class BrainResolver {
 
@@ -65,6 +69,32 @@ export default class BrainResolver {
       memories.length === 0
 
     ) {
+
+
+      // "Who are you?" and "Who am I?" must ALWAYS be answerable
+      // from local persistent storage — even when no memory keyword
+      // matched. Deterministic identity/profile answers never depend
+      // on an external API being reachable.
+      if (
+
+        isIdentityOrProfileQuestion(
+
+          prompt,
+
+        )
+
+      ) {
+
+
+        return this.localAnswer(
+
+          context,
+
+        );
+
+      }
+
+
 
 
       return {
@@ -173,13 +203,7 @@ export default class BrainResolver {
 
       },
 
-    };
-
-
-
-
-
-    context.logger.info(
+    };    context.logger.info(
 
       "BrainResolver",
 
@@ -193,6 +217,121 @@ export default class BrainResolver {
 
     );
 
+
+
+
+    return {
+
+
+      handled:
+
+        true,
+
+
+      response,
+
+    };
+
+  }
+
+
+
+
+
+  /**
+   * Compose a deterministic identity/profile answer from the
+   * persistent local store (OfflineComposer) when the question
+   * did not match any stored memory keyword.
+   */
+  private async localAnswer(
+
+    context:
+      RouterContext,
+
+  ):
+    Promise<BrainResult> {
+
+
+    const text =
+
+      await context.brain.compose(
+
+        context.request.prompt,
+
+      );
+
+
+
+    const response:
+
+      AIResponse =
+
+    {
+
+
+      text,
+
+
+
+      provider:
+
+        "brain",
+
+
+
+      model:
+
+        "memory",
+
+
+
+      processingTime:
+
+        Date.now() -
+
+        context.started,
+
+
+
+      metadata:
+
+      {
+
+        source:
+
+          "Brain",
+
+
+        category:
+
+          "identity",
+
+
+        confidence:
+
+          1,
+
+      },
+
+    };
+
+
+
+    context.logger.info(
+
+      "BrainResolver",
+
+      "Resolved identity from local storage",
+
+      {
+
+        prompt:
+
+          context.request.prompt,
+
+      },
+
+    );
 
 
 

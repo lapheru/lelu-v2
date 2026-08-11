@@ -17,6 +17,15 @@ import GroqProvider
 import GitHubModelsProvider
   from "../providers/GitHubModelsProvider";
 
+import CerebrasProvider
+  from "../providers/CerebrasProvider";
+
+import MistralProvider
+  from "../providers/MistralProvider";
+
+import FireworksProvider
+  from "../providers/FireworksProvider";
+
 
 export default function registerAIProviders() {
 
@@ -31,6 +40,18 @@ export default function registerAIProviders() {
 
   registry.register(
     new GroqProvider(),
+  );
+
+  registry.register(
+    new CerebrasProvider(),
+  );
+
+  registry.register(
+    new MistralProvider(),
+  );
+
+  registry.register(
+    new FireworksProvider(),
   );
 
   registry.register(

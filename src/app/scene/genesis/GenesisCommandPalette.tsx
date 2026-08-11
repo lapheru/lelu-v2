@@ -74,7 +74,7 @@ export default function GenesisCommandPalette() {
       { id: "open-reasoning", label: "Open reasoning & planning", hint: "Genesis Core", run: () => openPanel("reasoning") },
       { id: "open-agents", label: "Open knowledge & agents", hint: "Genesis Core", run: () => openPanel("agents") },
       { id: "open-memory", label: "Open memory", hint: "Genesis Core", run: () => openPanel("memory") },
-      { id: "open-providers", label: "Open providers", hint: "Genesis Core", run: () => openPanel("providers") },
+      { id: "open-providers", label: "Open API status", hint: "Genesis Core", run: () => openPanel("providers") },
       { id: "open-diagnostics", label: "Open engine diagnostics", hint: "Genesis Core", run: () => openPanel("diagnostics") },
       { id: "open-logs", label: "Open execution logs", hint: "Genesis Core", run: () => openPanel("logs") },
       { id: "close-panel", label: "Close active panel", hint: "Genesis Core", run: () => openPanel("none") },

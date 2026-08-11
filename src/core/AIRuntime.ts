@@ -32,6 +32,9 @@ import ResearchResolver
 import ProviderResolver
   from "./router/ProviderResolver";
 
+import AIProviderRegistry
+  from "./AIProviderRegistry";
+
 import type AIProvider from "../providers/AIProvider";
 
 import type {
@@ -364,6 +367,23 @@ export default class AIRuntime {
         health: await provider.health(),
       })),
     );
+  }
+
+  /**
+   * Live runtime state of the provider registry — which provider
+   * actually generated the last response, each provider's last
+   * success/failure, cooldown status and usage. This is the single
+   * source of truth the API Status tab renders; it reflects what
+   * the fallback chain really did, not a frontend guess.
+   */
+  public aiProviderRuntimeStatus(): {
+    activeProvider: string | null;
+    providers: ReturnType<AIProviderRegistry["statusSnapshot"]>;
+  } {
+    return {
+      activeProvider: this.providers.getActiveProvider(),
+      providers: this.providers.statusSnapshot(),
+    };
   }
 
   public knowledgeProviderList(): {

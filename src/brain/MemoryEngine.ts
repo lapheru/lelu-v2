@@ -8,6 +8,9 @@
 import LearningEngine
   from "./LearningEngine";
 
+import MemoryExtractor
+  from "./MemoryExtractor";
+
 import PatternMemory
   from "./PatternMemory";
 
@@ -75,6 +78,8 @@ export default class MemoryEngine {
       await this.findExisting(
 
         prompt,
+
+        response,
 
       );
 
@@ -155,10 +160,13 @@ export default class MemoryEngine {
    * ==========================================================
    * Find matching memory
    * ==========================================================
-   */
-  private async findExisting(
+   */  private async findExisting(
 
     prompt:
+      string,
+
+
+    response:
       string,
 
   ):
@@ -189,7 +197,6 @@ export default class MemoryEngine {
 
 
 
-
     const best =
 
       memories[0];
@@ -197,10 +204,57 @@ export default class MemoryEngine {
 
 
 
+    // A keyword overlap alone is NOT "the same memory": a project
+    // about "space" must not swallow the preference "I love retro
+    // space games" (or vice versa). Only treat the match as the
+    // existing memory when its category matches the category the
+    // new statement actually expresses, so distinct facts are
+    // stored instead of silently lost.
+    if (
+
+      best.confidence < 0.7
+
+    ) {
+
+
+      return undefined;
+
+    }
+
+
+
+
+    const expectedCategories =
+
+      new MemoryExtractor()
+
+        .extract(
+
+          prompt,
+
+          response,
+
+        )
+
+        .map(
+
+          memory =>
+
+            memory.category,
+
+        );
+
+
 
     if (
 
-      best.confidence >= 0.7
+      expectedCategories.length === 0 ||
+
+      expectedCategories.includes(
+
+        best.category,
+
+      )
 
     ) {
 
@@ -208,7 +262,6 @@ export default class MemoryEngine {
       return best;
 
     }
-
 
 
 

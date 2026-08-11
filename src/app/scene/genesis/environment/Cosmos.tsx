@@ -6,6 +6,10 @@
  * Master living universe environment. Atmospheric motion is owned by
  * AuroraCosmos; this component keeps the environment's slow orbital drift
  * synchronized with the canonical universe snapshot.
+ *
+ * Also owns the deep-space backdrop — the full-viewport procedural sky that
+ * carries depth, nebula color, and dust across the entire screen so no
+ * region reads as dead black.
  * ==========================================================
  */
 
@@ -15,6 +19,7 @@ import { Group } from "three";
 
 import { useGenesis } from "../GenesisCore";
 import AuroraCosmos from "./AuroraCosmos";
+import CosmicBackdrop from "./CosmicBackdrop";
 
 export default function Cosmos() {
   const { getLiveUniverse } = useGenesis();
@@ -43,6 +48,9 @@ export default function Cosmos() {
 
   return (
     <group ref={universe} name="CosmicEnvironment" renderOrder={4}>
+      {/* Deep-space backdrop: full-viewport procedural sky behind every layer. */}
+      <CosmicBackdrop />
+
       <AuroraCosmos />
     </group>
   );

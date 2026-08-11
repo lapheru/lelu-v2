@@ -11,6 +11,11 @@ import PatternMemory
 import type ResponsePattern
   from "./ResponsePattern";
 
+import {
+  isLeluIdentityQuestion,
+  isUserProfileQuestion,
+} from "./LeluIdentity";
+
 
 export default class OfflineComposer {
 
@@ -30,14 +35,43 @@ export default class OfflineComposer {
    * ==========================================================
    * Compose offline response
    * ==========================================================
-   */
-  public async compose(
+   */  public async compose(
 
     prompt:
       string,
 
   ):
     Promise<string> {
+
+
+    // Deterministic identity/profile questions are answered from
+    // local persistent storage FIRST. This is not a search shortcut:
+    // keyword overlap ("who" appears in both Lélu's identity and a
+    // stored user identity) could otherwise misroute "Who am I?" to
+    // Lélu's identity. These two question families must always
+    // resolve locally, with or without any external API.
+    const localAnswer =
+
+      await this.localIdentityAnswer(
+
+        prompt,
+
+      );
+
+
+
+    if (
+
+      localAnswer
+
+    ) {
+
+
+      return localAnswer;
+
+    }
+
+
 
 
     const matches =
@@ -68,7 +102,6 @@ export default class OfflineComposer {
 
 
 
-
     const best =
 
       this.pickBest(
@@ -76,7 +109,6 @@ export default class OfflineComposer {
         matches,
 
       );
-
 
 
 
@@ -176,7 +208,7 @@ export default class OfflineComposer {
 
         return this.identityResponse(
 
-          pattern.response,
+          pattern,
 
         );
 
@@ -251,11 +283,36 @@ export default class OfflineComposer {
    */
   private identityResponse(
 
-    value:
-      string,
+    pattern:
+      ResponsePattern,
 
   ):
     string {
+
+
+    const value =
+
+      pattern.response;
+
+
+
+
+    if (
+
+      pattern.keywords.includes(
+
+        "lelu",
+
+      )
+
+    ) {
+
+
+      return value;
+
+    }
+
+
 
 
     const match =
@@ -290,6 +347,168 @@ export default class OfflineComposer {
       `Your name is ${value}.`
 
     );
+
+  }
+
+
+
+
+  /**
+   * ==========================================================
+   * Local identity / profile answer
+   *
+   * Deterministic offline answers to "who are you" and "who am
+   * I" style questions, composed purely from the persistent
+   * local store. Returns null when the question is not one of
+   * these, so normal fallback behaviour is unchanged.
+   * ==========================================================
+   */
+  private async localIdentityAnswer(
+
+    prompt:
+      string,
+
+  ):
+    Promise<string | null> {
+
+
+    if (
+
+      isLeluIdentityQuestion(
+
+        prompt,
+
+      )
+
+    ) {
+
+
+      const identity =
+
+        this.memory.get(
+
+          "lelu-identity-foundation",
+
+        );
+
+
+
+      if (
+
+        identity
+
+      ) {
+
+
+        return this.identityResponse(
+
+          identity,
+
+        );
+
+      }
+
+    }
+
+
+
+
+    if (
+
+      isUserProfileQuestion(
+
+        prompt,
+
+      )
+
+    ) {
+
+
+      const known =
+
+        this.memory
+
+          .getAll()
+
+          .filter(
+
+            pattern =>
+
+              [
+
+                "identity",
+
+                "preference",
+
+                "goal",
+
+                "skill",
+
+                "project",
+
+                "relationship",
+
+              ].includes(
+
+                pattern.category,
+
+              ) &&
+
+              pattern.id !== "lelu-identity-foundation",
+
+          )
+
+          .slice(
+
+            0,
+
+            12,
+
+          );
+
+
+
+
+      if (
+
+        known.length > 0
+
+      ) {
+
+
+        return (
+
+          `Here is what I remember about you:\n\n${known
+
+            .map(
+
+              pattern =>
+
+                `- ${pattern.response}`,
+
+            )
+
+            .join("\n")}`
+
+        );
+
+      }
+
+
+
+
+      return (
+
+        "I don't have any established details about you yet — if you tell me your name, preferences or what you're working on, I'll remember it locally."
+
+      );
+
+    }
+
+
+
+
+    return null;
 
   }
 

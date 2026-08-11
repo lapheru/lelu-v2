@@ -3,9 +3,14 @@
  * LÉLUVERSE
  * AURORA COSMOS
  *
- * Procedural polar-light curtains. The field is made from curved,
- * translucent strips with a shared animated shader rather than flat
- * flat strips, so the aurora has depth, turbulence, and edge fade.
+ * Procedural polar-light curtains flowing through the larger
+ * cosmic environment. The field is made from curved,
+ * translucent strips with a shared animated shader rather than
+ * flat strips, so the aurora has depth, turbulence, and edge
+ * fade. Curtains are wrapped AROUND the whole environment at
+ * varied azimuths and two depth tiers, each facing the core,
+ * so the light reads as atmospheric energy flowing through the
+ * 360° cosmos rather than an isolated object on one side.
  * ==========================================================
  */
 
@@ -29,6 +34,11 @@ interface RibbonSeed {
   speed: number;
   hue: number;
   tilt: number;
+  baseX: number;
+  baseY: number;
+  baseZ: number;
+  baseRotX: number;
+  baseRotY: number;
 }
 
 interface AuroraRibbon {
@@ -37,7 +47,7 @@ interface AuroraRibbon {
   seed: RibbonSeed;
 }
 
-const RIBBON_COUNT = 9;
+const RIBBON_COUNT = 14;
 const RIBBON_SEGMENTS = 36;
 const RIBBON_ROWS = 12;
 
@@ -95,10 +105,10 @@ const fragmentShader = `
     float curtain = smoothstep(0.18, 0.82, vCurtain);
     float turbulence = noise(vec2(vUv.x * 7.0, vUv.y * 4.0 + uTime * 0.18));
     float filament = pow(max(0.0, sin(vUv.x * 22.0 + turbulence * 5.0 - uTime * 1.4)), 5.0);
-    float alpha = edge * (0.12 + curtain * 0.28 + filament * 0.26) * (0.65 + uActivity * 0.8);
+    float alpha = edge * (0.10 + curtain * 0.24 + filament * 0.22) * (0.55 + uActivity * 0.7);
     vec3 color = hue(fract(uHue + uTime * 0.012 + vUv.x * 0.18));
     color = mix(color, vec3(0.35, 0.95, 1.0), 0.28);
-    gl_FragColor = vec4(color * (0.55 + curtain * 0.7), alpha);
+    gl_FragColor = vec4(color * (0.5 + curtain * 0.65), alpha);
   }
 `;
 
@@ -114,7 +124,7 @@ function createRibbonGeometry(seed: RibbonSeed): BufferGeometry {
     for (let segment = 0; segment <= RIBBON_SEGMENTS; segment += 1) {
       const u = segment / RIBBON_SEGMENTS;
       const x = (u - 0.5) * seed.width;
-      const z = seed.z + Math.sin(u * Math.PI * 2.0 + seed.phase) * 0.34;
+      const z = seed.z + Math.sin(u * Math.PI * 2.0 + seed.phase) * 0.4;
       positions.push(x, y, z);
       uvs.push(u, v);
     }
@@ -170,14 +180,30 @@ export default function AuroraCosmos() {
 
   const ribbons = useMemo<AuroraRibbon[]>(() => {
     return Array.from({ length: RIBBON_COUNT }, (_, index) => {
+      // Curtains wrap the whole environment: evenly spaced azimuths around
+      // the core, alternating between an inner veil (closer to the worlds)
+      // and an outer veil (toward the deep field). Each ribbon faces the
+      // core so the light reads as atmospheric energy moving around the
+      // scene instead of one cluster beside it.
+      const azimuth = (index / RIBBON_COUNT) * Math.PI * 2 + 0.4;
+      const tier = index % 2;
+      const radius = tier === 0
+        ? 9.5 + (index % 3) * 2.4
+        : 18 + (index % 4) * 3.6;
+      const height = 1.4 + (index % 4) * 1.35 + tier * 1.8;
       const seed: RibbonSeed = {
-        width: 8.5 + (index % 3) * 1.3,
-        height: 3.8 + (index % 4) * 0.45,
-        z: -3.4 - index * 0.42,
+        width: tier === 0 ? 16 + (index % 4) * 4 : 26 + (index % 3) * 6,
+        height: 5.0 + (index % 3) * 1.2,
+        z: -(1.2 + (index % 3) * 0.7),
         phase: index * 1.47,
-        speed: 0.18 + (index % 4) * 0.035,
-        hue: 0.42 + index * 0.055,
-        tilt: (index - 4) * 0.035,
+        speed: 0.16 + (index % 4) * 0.03,
+        hue: 0.42 + index * 0.045,
+        tilt: ((index % 5) - 2) * 0.09,
+        baseX: Math.cos(azimuth) * radius,
+        baseY: height,
+        baseZ: Math.sin(azimuth) * radius,
+        baseRotX: 0.38 + tier * 0.16 + (index % 2) * 0.08,
+        baseRotY: azimuth + Math.PI,
       };
       return createRibbon(seed);
     });
@@ -212,9 +238,16 @@ export default function AuroraCosmos() {
 
       const child = root.current?.children[index];
       if (child) {
-        child.rotation.z = seed.tilt + Math.sin(clock.elapsedTime * 0.12 + seed.phase) * 0.025;
-        child.position.x = Math.sin(clock.elapsedTime * 0.06 + seed.phase) * 0.35;
-        child.position.y = Math.cos(clock.elapsedTime * 0.05 + seed.phase) * 0.2;
+        child.rotation.set(
+          seed.baseRotX + Math.sin(clock.elapsedTime * 0.09 + seed.phase) * 0.02,
+          seed.baseRotY + Math.sin(clock.elapsedTime * 0.05 + seed.phase) * 0.012,
+          seed.tilt + Math.sin(clock.elapsedTime * 0.12 + seed.phase) * 0.025,
+        );
+        child.position.set(
+          seed.baseX + Math.sin(clock.elapsedTime * 0.06 + seed.phase) * 0.5,
+          seed.baseY + Math.cos(clock.elapsedTime * 0.05 + seed.phase) * 0.24,
+          seed.baseZ + Math.cos(clock.elapsedTime * 0.06 + seed.phase * 1.3) * 0.5,
+        );
         child.scale.set(1 + activity * 0.08, 1 + activity * 0.06, 1);
       }
     });

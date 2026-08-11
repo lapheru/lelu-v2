@@ -13,17 +13,12 @@ import { Group } from "three";
 
 import Cosmos from "../environment/Cosmos";
 import StarField from "../environment/stars/StarField";
-import CoreLayer from "./CoreLayer";
-import Ocean from "./ocean/Ocean";
-import HaloShell from "../materials/HaloShell";
-import CrystalShell from "../materials/CrystalShell";
-import ElectricShell from "../materials/ElectricShell";
+import CoreEmission from "./CoreEmission";
 import LifeEvolutionVisualizer from "./LifeEvolutionVisualizer";
 import CoreMemoryVeins from "./CoreMemoryVeins";
-import CoreMutationVisualizer from "./CoreMutationVisualizer";
 import CoreAtmosphere from "../systems/CoreAtmosphere";
 import GenesisCore from "../materials/GenesisCore";
-import GenesisLegacyVisualMigration from "./GenesisLegacyVisualMigration";
+import CosmicField from "./CosmicField";
 import { useGenesis } from "../GenesisCore";
 import {
   idleGenesisSignals,
@@ -96,24 +91,33 @@ export default function GenesisRenderer() {
       <group name="Universe">
         <StarField />
         <Cosmos />
-        <GenesisLegacyVisualMigration />
+        {/* The cosmic ring/nodes field and the memory lattice are part of the
+            ENVIRONMENT — distributed through the star field with depth —
+            never a shell wrapped around the Core. */}
+        <CosmicField />
+        <CoreMemoryVeins />
       </group>
 
       <group name="BlueGenesisCore">
-        <CoreLayer>
-          <GenesisCore />
-          {/* Existing evolution layers: each shell reads its live EngineBus
-              channel and feeds its own material uniforms every frame. */}
-          <CrystalShell />
-          <ElectricShell />
-          <HaloShell />
-          <CoreMutationVisualizer />
-        </CoreLayer>
+        {/* ONE Core — one origin, one transform, one mutation controller.
+            The single mesh material carries every engine state (ocean,
+            plasma, electric, crystal, halo, bio) weighted by the EngineBus
+            channels, and CoreEmission is energy leaving that same surface
+            — particles, electric arcs, ocean rings. The old second
+            controller (CoreLayer / LivingCoreController) that used to
+            rotate and breathe the same core with its own formula has been
+            merged into this one body: the mesh is the ONLY transform
+            controller of the ONLY core object. The life motes are nested
+            inside the same mesh so they share the one transform. */}
+        <GenesisCore>
+          <LifeEvolutionVisualizer />
+        </GenesisCore>
+        <CoreEmission />
 
-        <Ocean />
+        {/* The Core's light source, driven by the same palette. The aurora
+            lives in the cosmic environment (AuroraCosmos inside the Universe
+            group), never wrapped around the Core. */}
         <CoreAtmosphere />
-        <LifeEvolutionVisualizer />
-        <CoreMemoryVeins />
       </group>
     </group>
   );

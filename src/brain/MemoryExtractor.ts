@@ -100,11 +100,21 @@ export default class MemoryExtractor {
 
         keywords:
 
-          this.keywords(
+          [
 
-            identity[2],
+            ...this.keywords(
 
-          ),
+              identity[2],
+
+            ),
+
+            "name",
+
+            "call",
+
+            "me",
+
+          ],
 
 
         importance:

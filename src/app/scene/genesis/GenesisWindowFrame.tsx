@@ -213,6 +213,18 @@ export default function GenesisWindowFrame({
     maxHeight: size.height === undefined && overflow === "auto-y" ? maxHeight : undefined,
     overflowY: overflow === "auto-y" ? "auto" : undefined,
     overflow: overflow === "hidden" ? "hidden" : undefined,
+    // Scroll hardening for auto-y windows: the app's html/body/#root
+    // are overflow:hidden (canvas app), so once the wheel is inside a
+    // panel it must never chain out to the frozen page, and touch
+    // scrolling must not be swallowed by the drag/pointer plumbing.
+    // Thin translucent scrollbar keeps the scroll affordance visible.
+    overscrollBehavior: overflow === "auto-y" ? "contain" : undefined,
+    touchAction: overflow === "auto-y" ? "pan-y" : undefined,
+    scrollbarWidth: overflow === "auto-y" ? "thin" : undefined,
+    scrollbarColor:
+      overflow === "auto-y"
+        ? "rgba(148, 163, 184, 0.45) rgba(255, 255, 255, 0.06)"
+        : undefined,
     pointerEvents: "auto",
     background: background ?? genesisTheme.glass.panel,
     border: active ? genesisTheme.glass.borderAccent : genesisTheme.glass.border,

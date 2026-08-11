@@ -57,7 +57,10 @@ export default class ProviderResolver {
         );
 
         const response = await this.executeProvider(provider, context);
-        context.aiProviders.markSuccess(provider.name);
+        context.aiProviders.markSuccess(
+          provider.name,
+          response.metadata?.usage,
+        );
 
         context.logger.info(
           "ProviderResolver",
@@ -144,13 +147,17 @@ export default class ProviderResolver {
 
   private offline(started: number): AIResponse {
     return {
-      text: "Lélu could not generate a response.",
+      text:
+        "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
       provider: "offline",
       model: "offline",
       processingTime: Date.now() - started,
       metadata: {
         success: false,
         reason: "all-ai-providers-failed",
+        offline: true,
+        identity: true,
+        memory: true,
       },
     };
   }

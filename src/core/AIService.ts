@@ -185,18 +185,42 @@ export default class AIService {
       return;
     }
 
+    // Provider or memory initialization must never take the whole
+    // application down (white-screen protection). Every subsystem is
+    // initialized independently and reports failure through the
+    // notification channel instead of throwing; chat then degrades
+    // gracefully per-request. LÉLU's identity and profile load from
+    // local persistent storage regardless of provider availability.
     try {
       await this.runtime.initialize();
-      await this.user.initialize();
-      await this.runtime.brain.initialize();
-      this.initialized = true;
     } catch (error) {
       this.emitNotification({
-        title: "Lélu initialization failed",
+        title: "Lélu runtime warning",
         description: error instanceof Error ? error.message : String(error),
       });
-      throw error;
     }
+
+    try {
+      await this.user.initialize();
+    } catch (error) {
+      this.emitNotification({
+        title: "Lélu profile warning",
+        description: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    // Brain (memory + identity seed) already guards its own init;
+    // re-run here so a direct AIService.initialize always seeds.
+    try {
+      await this.runtime.brain.initialize();
+    } catch (error) {
+      this.emitNotification({
+        title: "Lélu memory warning",
+        description: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    this.initialized = true;
   }
 
   public async chat(prompt: string): Promise<AIResponse> {
@@ -255,28 +279,33 @@ export default class AIService {
         response.provider !== "offline" &&
         response.metadata?.success !== false;
 
+      // Memory consolidation ALWAYS runs — online or offline. An API
+      // failure must never equal a memory failure: meaningful user
+      // statements (name, preferences, projects, goals) are extracted
+      // and persisted locally even when every provider is down, and
+      // the user profile updates from the same consolidation path.
+      await this.memory.learn(message, response.text);
+      await this.runtime.brain.getConversation().update(message);
+
+      const memories = await this.runtime.brain.recall(message);
+      for (const memory of memories) {
+        await this.user.learn(memory.category, memory.response);
+      }
+
+      const cognition = this.runtime.brain.cognitiveState();
+      this.emitCognition({
+        agents: cognition.agents,
+        workspaces: cognition.workspaces,
+        nodes: cognition.nodes,
+        reasoning: cognition.reasoning,
+        plan: cognition.plan,
+      });
+
       if (responseSucceeded) {
         // Fold this request's Reasoning/Planning output into the live
         // cognitive state, so it's visible beyond the single response
         // object (Genesis's Reasoning/Planning panel reads it from here).
         this.runtime.brain.recordThinking(reasoning, plan);
-
-        await this.memory.learn(message, response.text);
-        await this.runtime.brain.getConversation().update(message);
-
-        const memories = await this.runtime.brain.recall(message);
-        for (const memory of memories) {
-          await this.user.learn(memory.category, memory.response);
-        }
-
-        const cognition = this.runtime.brain.cognitiveState();
-        this.emitCognition({
-          agents: cognition.agents,
-          workspaces: cognition.workspaces,
-          nodes: cognition.nodes,
-          reasoning: cognition.reasoning,
-          plan: cognition.plan,
-        });
       }
 
       return {
@@ -362,6 +391,36 @@ export default class AIService {
 
   public async getProviderHealth() {
     return await this.runtime.aiProviderHealthList();
+  }
+
+  /**
+   * Combined, read-only API Status snapshot for the API Status
+   * tab: live registry runtime state (active provider, per-provider
+   * last success/failure/cooldown/usage) plus each provider's own
+   * health report and the knowledge/research provider list.
+   * Never contains credentials — only safe status diagnostics.
+   */
+  public async getApiStatus(): Promise<{
+    activeProvider: string | null;
+    runtime: ReturnType<AIRuntime["aiProviderRuntimeStatus"]>;
+    health: Awaited<ReturnType<AIRuntime["aiProviderHealthList"]>>;
+    knowledge: ReturnType<AIRuntime["knowledgeProviderList"]>;
+  }> {
+    let health: Awaited<ReturnType<AIRuntime["aiProviderHealthList"]>> = [];
+    try {
+      health = await this.runtime.aiProviderHealthList();
+    } catch (error) {
+      console.error("[AIService] Provider health check failed", error);
+    }
+
+    const runtime = this.runtime.aiProviderRuntimeStatus();
+
+    return {
+      activeProvider: runtime.activeProvider,
+      runtime,
+      health,
+      knowledge: this.runtime.knowledgeProviderList(),
+    };
   }
 
   /**
